@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace Domain.Entites
 {
-    internal class ReportTypes
+    public class ReportTypes
     {
+        public int ID { get; set; }
+        public string Name { get; set; }
+
     }
 }

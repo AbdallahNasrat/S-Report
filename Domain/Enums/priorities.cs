@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace Domain.Enums
 {
-    internal class Class1
+    public enum Priorities
     {
+        high,
+        medium,
+        low
     }
 }

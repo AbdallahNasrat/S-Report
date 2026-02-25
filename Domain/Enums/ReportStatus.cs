@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace Domain.Enums
 {
-    internal class ReportStatus
+    public enum ReportStatus
     {
+        Success,
+        InProgress,
+        Waiting
     }
 }

@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 
 namespace Domain.Enums
 {
-    internal class Genders
+    public enum Genders
     {
+        Man,
+        Female
     }
 }

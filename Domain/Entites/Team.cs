@@ -6,7 +6,11 @@ using System.Threading.Tasks;
 
 namespace Domain.Entites
 {
-    internal class Team
+    public class Team
     {
+        public int ID { get; set; }
+        public string Name { get; set; }
+        //Relationship
+        public int CityID { get; set; }
     }
 }
