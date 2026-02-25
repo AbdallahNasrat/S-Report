@@ -17,6 +17,7 @@ namespace Domain.Entites
         public string Description { get; set; }
         public ReportStatus State { get; set; }
         public bool IsValid { get; set; }
+        public string AiResult { get; set; }
 
 
         //Relationship
