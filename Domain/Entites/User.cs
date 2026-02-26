@@ -9,8 +9,8 @@ namespace Domain.Entites
 {
     public class User
     {
-        public int ID { get; set; }
-        public string NationalID { get; set; }
+        public int Id { get; set; }
+        public string NationalId { get; set; }
         public string FName { get; set; }
         public string SName { get; set; }
         public string Address { get; set; }
@@ -22,8 +22,14 @@ namespace Domain.Entites
         public bool Volunteer { get; set; }
         public int Rate { get; set; }
 
+
         //Relationship
-        public int RoleID { get; set; }
+        public int? RoleId { get; set; }
+        public Role Role { get; set; }
+        public int CityId { get; set; }
+        public City City { get; set; }
+        public ICollection<Report> Reports { get; set; } = new HashSet<Report>();
+        public ICollection<Notification> Notifications { get; set; } = new HashSet<Notification>();
 
 
     }

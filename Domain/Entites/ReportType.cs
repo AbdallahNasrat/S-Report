@@ -6,10 +6,12 @@ using System.Threading.Tasks;
 
 namespace Domain.Entites
 {
-    public class ReportTypes
+    public class ReportType
     {
-        public int ID { get; set; }
+        public int Id { get; set; }
         public string Name { get; set; }
+        //Relationships
+        public ICollection<Report> Reports { get; set; } = new HashSet<Report>();
 
     }
 }

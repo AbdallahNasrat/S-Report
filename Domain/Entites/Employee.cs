@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace Domain.Entites
 {
-    internal class Employee
+    public class Employee
     {
-        public int ID { get; set; }
-        public string NationalID { get; set; }
+        public int Id { get; set; }
+        public string NationalId { get; set; }
         public string FName { get; set; }
         public string SName { get; set; }
         public DateTime Birthdate { get; set; }
@@ -21,8 +21,11 @@ namespace Domain.Entites
         public string Gender { get; set; }
 
         //Relationship
-        public int CityID { get; set; }
-        public int TeamID { get; set; }
-        public int RoleID { get; set; }
+
+        public int? TeamId { get; set; }
+        public Team? Team { get; set; }
+        public int? RoleId { get; set; }
+        public Role? Role { get; set; }
+        public ICollection<Notification> Notifications { get; set; } = new HashSet<Notification>();
     }
 }

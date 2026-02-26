@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 
 namespace Domain.Entites
 {
-    public class Team
+    public class Role
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        //Relationship
+
+        //Relationships
+        public ICollection<User> Users { get; set; } = new HashSet<User>();
         public ICollection<Employee> Employees { get; set; } = new HashSet<Employee>();
-        public City City { get; set; }
     }
 }

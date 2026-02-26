@@ -8,10 +8,11 @@ namespace Domain.Entites
 {
     internal class Media
     {
-        public int ID { get; set; }
+        public int Id { get; set; }
         public string FilePath { get; set; }
 
         //Relationships
-        public int ReportID { get; set; }
+        public int ReportId { get; set; }
+        public Report Report { get; set; }
     }
 }

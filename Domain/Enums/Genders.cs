@@ -8,7 +8,7 @@ namespace Domain.Enums
 {
     public enum Genders
     {
-        Man,
+        male,
         Female
     }
 }

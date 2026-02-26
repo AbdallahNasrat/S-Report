@@ -8,7 +8,13 @@ namespace Domain.Entites
 {
     public class City
     {
-        public int ID { get; set; }
+        public int Id { get; set; }
         public string Name { get; set; }
+
+        //Relationships
+        public ICollection<Report> Reports { get; set; } = new HashSet<Report>();
+        public ICollection<Notification> Notifications { get; set; } = new HashSet<Notification>();
+        public ICollection<City> Cities { get; set; } = new HashSet<City>();
+
     }
 }
