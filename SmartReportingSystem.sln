@@ -4,12 +4,23 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.10.34928.147
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Application", "Application\Application.csproj", "{BAA1E864-1171-4477-8A1A-C8362B5095B0}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0EF55968-45DD-4DCE-972E-873FA0DD5C21} = {0EF55968-45DD-4DCE-972E-873FA0DD5C21}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domain", "Domain\Domain.csproj", "{0EF55968-45DD-4DCE-972E-873FA0DD5C21}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Presentation", "Presentation\Presentation.csproj", "{1EF44139-D406-4022-BCDE-C63D5671835C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9274609D-9ED3-477F-BD6C-27732561317B} = {9274609D-9ED3-477F-BD6C-27732561317B}
+		{BAA1E864-1171-4477-8A1A-C8362B5095B0} = {BAA1E864-1171-4477-8A1A-C8362B5095B0}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{9274609D-9ED3-477F-BD6C-27732561317B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0EF55968-45DD-4DCE-972E-873FA0DD5C21} = {0EF55968-45DD-4DCE-972E-873FA0DD5C21}
+		{BAA1E864-1171-4477-8A1A-C8362B5095B0} = {BAA1E864-1171-4477-8A1A-C8362B5095B0}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

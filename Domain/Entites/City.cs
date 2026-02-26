@@ -14,7 +14,8 @@ namespace Domain.Entites
         //Relationships
         public ICollection<Report> Reports { get; set; } = new HashSet<Report>();
         public ICollection<Notification> Notifications { get; set; } = new HashSet<Notification>();
-        public ICollection<City> Cities { get; set; } = new HashSet<City>();
+        public ICollection<Team> Teams { get; set; } = new HashSet<Team>();
+        public ICollection<User> Users { get; set; } = new HashSet<User>();
 
     }
 }

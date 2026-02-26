@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Domain.Entites
 {
-    internal class Media
+    public class Media
     {
         public int Id { get; set; }
         public string FilePath { get; set; }
