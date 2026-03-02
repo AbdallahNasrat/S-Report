@@ -8,8 +8,8 @@ namespace Domain.Enums
 {
     public enum ReportStatus
     {
-        Success,
-        InProgress,
-        Waiting
+        Pending ,
+        InProgress ,
+        Resolved
     }
 }

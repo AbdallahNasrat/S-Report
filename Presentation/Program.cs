@@ -14,7 +14,7 @@ namespace Presentation
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            //DB
+            //DB -- Link Database At infrastructure project with Presentation Project
             builder.Services.AddInfrastructureServices(builder.Configuration);
 
 

@@ -16,7 +16,7 @@ namespace Domain.Entites
         //Relationship
         public int? UserId { get; set; }
         public User? User { get; set; }
-        public ICollection<City> Cities { get; set; }
+        public ICollection<City>? Cities { get; set; }
         public int EmployeeId { get; set; }
         public Employee Employee { get; set; }
 

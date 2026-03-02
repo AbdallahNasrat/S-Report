@@ -8,8 +8,8 @@ namespace Domain.Enums
 {
     public enum Priorities
     {
-        high,
-        medium,
-        low
+        High,
+        Medium,
+        Low
     }
 }
