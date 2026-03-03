@@ -11,16 +11,29 @@ namespace Infrastructure.Configuration
             //Many notifications with one employee
             builder.HasOne(n => n.Employee)
                 .WithMany(e => e.Notifications)
-                .HasForeignKey(n => n.EmployeeId);
+                .HasForeignKey(n => n.EmployeeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
 
             //Many notifications to one user
             builder.HasOne(n => n.User)
                 .WithMany(u => u.Notifications)
-                .HasForeignKey(n => n.UserId);
+                .HasForeignKey(n => n.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
             //many notification to many cities
             builder.HasMany(n => n.Cities)
                 .WithMany(c => c.Notifications)
                 .UsingEntity(t => t.ToTable("CitiesNotifications"));
+                
+
+
+            //properties Configurations
+            builder.Property(p => p.Title).HasMaxLength(150);
+            builder.Property(p => p.Body).HasMaxLength(1000);
+            
+
         }
     }
 }

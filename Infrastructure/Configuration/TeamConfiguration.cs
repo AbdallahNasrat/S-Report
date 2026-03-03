@@ -18,7 +18,11 @@ namespace Infrastructure.Configuration
             //one city with many teams
             builder.HasOne(t => t.City)
                 .WithMany(c => c.Teams)
-                .HasForeignKey(t => t.CityId);
+                .HasForeignKey(t => t.CityId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            //properties 
+            builder.Property(p => p.Name).HasMaxLength(100);
         }
     }
 }

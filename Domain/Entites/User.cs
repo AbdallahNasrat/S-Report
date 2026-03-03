@@ -20,7 +20,7 @@ namespace Domain.Entites
         public Genders Gender { get; set; }
         public DateTime Birthdate { get; set; }
         public bool Volunteer { get; set; }
-        public int Rate { get; set; }
+        public decimal Rate { get; set; }
 
 
         //Relationship
