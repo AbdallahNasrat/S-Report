@@ -7,6 +7,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
+using Domain.Interfaces.Repositories;
+using Infrastructure.Repos;
 
 
 namespace Infrastructure
@@ -16,6 +18,12 @@ namespace Infrastructure
         public static IServiceCollection AddInfrastructureServices(this IServiceCollection services , IConfiguration configuration) {
             var connectionStr = configuration.GetConnectionString("DefaultConnection");
             services.AddDbContext<Context>(options => options.UseSqlServer(connectionStr));
+            services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepo<>));
+            services.AddScoped<IUserRepository,UserRepo>();
+            services.AddScoped<IReportRepository,ReportRepo>();
+            services.AddScoped<IEmployeeRepository,EmployeeRepo>();
+            services.AddScoped<IUnitOfWork,UnitOfWork>();
+            services.AddScoped<INotificationRepository, NotificationRepo>();
             return services;
 
         }
