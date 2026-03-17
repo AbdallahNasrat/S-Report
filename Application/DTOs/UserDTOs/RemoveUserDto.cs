@@ -4,13 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain.Enums
+namespace Application.DTOs.UserDTOs
 {
-    public enum ReportStatus
+    internal class RemoveUserDto
     {
-        Pending ,
-        InProgress ,
-        Resolved,
-        Rejected
     }
 }

@@ -4,13 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain.Enums
+namespace Application.DTOs.EmployeeDTOs
 {
-    public enum ReportStatus
+    internal class RegisterDto
     {
-        Pending ,
-        InProgress ,
-        Resolved,
-        Rejected
     }
 }
