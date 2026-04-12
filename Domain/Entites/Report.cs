@@ -29,6 +29,6 @@ namespace Domain.Entites
         public ReportType ReportType { get; set; }
         public int? TeamId { get; set; }
         public Team? Team { get; set; }
-
+        public ICollection<Media> Medias { get; set; } = new List<Media>();
     }
 }

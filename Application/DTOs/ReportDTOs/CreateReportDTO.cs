@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,7 +13,7 @@ namespace Application.DTOs.ReportDTOs
         public decimal Latitude { get; set; }
         public decimal Longitude { get; set; }     
         public int ReportTypeId { get; set; }
-
+        public List<IFormFile>? MediaFiles { get; set; }
 
     }
 }

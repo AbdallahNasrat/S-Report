@@ -21,6 +21,7 @@ namespace Application.DTOs.ReportDTOs
         public string UserName { get; set; }
         public string City { get; set; }
         public string TeamName { get; set; }
+        public List<MediaResponseDto> AttachedMedia { get; set; }
 
 
     }
