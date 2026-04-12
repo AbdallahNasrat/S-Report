@@ -10,8 +10,7 @@ namespace Application.DTOs.ReportDTOs
     {
         public string Description { get; set; }
         public decimal Latitude { get; set; }
-        public decimal Longitude { get; set; }
-        public int CityId { get; set; }
+        public decimal Longitude { get; set; }     
         public int ReportTypeId { get; set; }
 
 
