@@ -9,5 +9,7 @@ namespace Domain.Interfaces.Repositories
 {
     public interface IReportRepository : IGenericRepository<Report>
     {
+        Task<IEnumerable<Report>> GetFilteredReportsAsync(int cityId, int pageNumber, int pageSize, bool excludeResolved);
+
     }
 }

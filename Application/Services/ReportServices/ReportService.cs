@@ -1,6 +1,7 @@
 ﻿using Application.DTOs.ReportDTOs;
 using Domain.Entites;
 using Domain.Enums;
+using Domain.Interfaces.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,10 @@ namespace Application.Services.ReportServices
 {
     public class ReportService : IReportService
     {
+        IUnitOfWork _uow;
+        public ReportService(IUnitOfWork uow) {
+            _uow = uow;
+        }
         public Task<bool> AddAILayer(Report report)
         {
             throw new NotImplementedException();
@@ -26,10 +31,33 @@ namespace Application.Services.ReportServices
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<ReportDetailsDto>> GetAllReportsAsync(int cityId)
+        public async Task<IEnumerable<ReportDetailsDto>> GetFilteredReportsAsync(int cityId, int pageNumber, int pageSize, bool excludeResolved)
         {
-            throw new NotImplementedException();
+            var reports = await _uow.ReportsRepo.GetFilteredReportsAsync(cityId, pageNumber, pageSize, excludeResolved);
+
+            var result = reports.Select(report => new ReportDetailsDto
+            {
+                ReportId = report.Id,
+                Date = report.Date,
+                Latitude = report.Latitude,
+                Longitude = report.Longitude,
+                Priority = report.Priority.ToString(),
+                Description = report.Description,
+                ReportState = report.State.ToString(),
+                IsValid = report.IsValid,
+                AiResult = report.AiResult,
+                ReporterName = $"{report.User.FName} {report.User.SName}", 
+                ReporterId = report.User.Id,
+                City = report.City.Name,
+                TeamName = report.Team?.Name ?? "No Team",
+                AttachedMedia = report.Medias.Select(m => new MediaResponseDto
+                {
+                    FileURL = m.FilePath,
+                    MediaType = m.Type.ToString()
+                }).ToList()}).ToList();
+            return result;
         }
+        
 
         public Task<IEnumerable<ReportSummaryDto>> GetMyReportsAsync(int userId)
         {

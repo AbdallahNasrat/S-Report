@@ -18,7 +18,8 @@ namespace Application.DTOs.ReportDTOs
         public string ReportState { get; set; }
         public bool? IsValid { get; set; }
         public string? AiResult { get; set; }
-        public string UserName { get; set; }
+        public string ReporterName { get; set; }
+        public int ReporterId { get; set; }
         public string City { get; set; }
         public string TeamName { get; set; }
         public List<MediaResponseDto> AttachedMedia { get; set; }

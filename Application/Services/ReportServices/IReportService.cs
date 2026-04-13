@@ -15,7 +15,7 @@ namespace Application.Services.ReportServices
         public Task<bool> DeleteReportAsync(int reportId);
         public Task<bool> UpdateReportStatusAsync(int reportId, ReportStatus status);
         public Task<IEnumerable<ReportSummaryDto>> GetMyReportsAsync(int userId);
-        public Task<IEnumerable<ReportDetailsDto>> GetAllReportsAsync(int cityId);
+        public Task<IEnumerable<ReportDetailsDto>> GetFilteredReportsAsync(int cityId, int pageNumber, int pageSize, bool excludeResolved)
         public Task<ReportDetailsDto> GetReportById(int reportId);
         public Task<bool> AddAILayer(Report report);
 

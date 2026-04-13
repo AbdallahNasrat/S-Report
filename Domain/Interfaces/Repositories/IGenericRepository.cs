@@ -22,7 +22,7 @@ namespace Domain.Interfaces.Repositories
         public Task<T> GetByIdAsync(int id);
 
         //GetAll 
-        public Task<IEnumerable<T>> GetAllAsync(Expression<Func<T,bool>> filter = null);
+        public Task<IEnumerable<T>> GetAllAsync(Expression<Func<T,bool>> filter = null,string properties="");
 
 
     }

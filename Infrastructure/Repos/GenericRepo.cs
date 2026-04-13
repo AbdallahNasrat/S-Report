@@ -23,13 +23,24 @@ namespace Infrastructure.Repos
             _context.Set<T>().Remove(Entity);
         }
 
-        public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>> filter = null)
+        public async Task<IEnumerable<T>> GetAllAsync(
+            Expression<Func<T, bool>> filter = null ,
+            string properties="")
         {
+            
             IQueryable<T> query = _context.Set<T>();
             if (filter != null) {
                 query = query.Where(filter);
+
             }
-            return await query.ToListAsync();
+            if (!string.IsNullOrEmpty(properties)) {
+                string[] values = properties.Split(',');
+                foreach (var prop in values)
+                {
+                    query.Include(prop);
+                }
+            }
+            return await query.AsNoTracking().ToListAsync();
         }   
 
         public async Task<T> GetByIdAsync(int id)

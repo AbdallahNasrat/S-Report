@@ -1,4 +1,5 @@
 using Infrastructure;
+using Application.DI;
 namespace Presentation
 {
     public class Program
@@ -16,6 +17,7 @@ namespace Presentation
 
             //DB -- Link Database At infrastructure project with Presentation Project
             builder.Services.AddInfrastructureServices(builder.Configuration);
+            builder.Services.AddApplicationService();
 
 
             var app = builder.Build();

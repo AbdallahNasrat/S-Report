@@ -11,6 +11,6 @@ namespace Domain.Enums
         Pending ,
         InProgress ,
         Resolved,
-        Rejected
+        Closed
     }
 }
