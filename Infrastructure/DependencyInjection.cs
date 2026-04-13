@@ -9,6 +9,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Domain.Interfaces.Repositories;
 using Infrastructure.Repos;
+using Application.Services.FileService;
+using Domain.Services;
 
 
 namespace Infrastructure
@@ -24,6 +26,8 @@ namespace Infrastructure
             services.AddScoped<IEmployeeRepository,EmployeeRepo>();
             services.AddScoped<IUnitOfWork,UnitOfWork>();
             services.AddScoped<INotificationRepository, NotificationRepo>();
+            services.AddScoped<IFileService, FileService>();
+
             return services;
 
         }
