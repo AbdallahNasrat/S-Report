@@ -14,6 +14,7 @@ namespace Application.DTOs.ReportDTOs
         public decimal Longitude { get; set; }     
         public int ReportTypeId { get; set; }
         public List<IFormFile>? MediaFiles { get; set; }
+        public string CityName { get; set; }
 
     }
 }

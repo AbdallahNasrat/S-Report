@@ -6,7 +6,7 @@ using System.IO;
 using Microsoft.AspNetCore.Mvc;
 
 
-namespace Domain.Services
+namespace Infrastructure.Services
 {
     public class FileService : IFileService
     {
@@ -20,7 +20,19 @@ namespace Domain.Services
         public async Task<string> SaveReportMediaAsync(IFormFile file, string mediaType)
         {
             if (file == null || file.Length == 0) {
-                throw new ArgumentException("file is not exist or bad");
+                throw new ArgumentException("file does not exist or bad");
+            }
+            var extension = Path.GetExtension(file.FileName).ToLower();
+
+            string[] allowedImageExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".svg" };
+            string[] allowedAudioExtensions = { ".mp3", ".wav", ".m4a", ".aac", ".ogg", ".amr" };
+
+            // دمج اللستتين مع بعض
+            var allAllowedExtensions = allowedImageExtensions.Concat(allowedAudioExtensions).ToArray();
+
+            if (!allAllowedExtensions.Contains(extension))
+            {
+                throw new Exception($"File Type ({extension}) Does not support Now, only audio and video.");
             }
             var year = DateTime.Now.Year.ToString();
             var month = DateTime.Now.Month.ToString("D2");
@@ -32,7 +44,6 @@ namespace Domain.Services
             if (!Directory.Exists(physicalPath)) {
                 Directory.CreateDirectory(physicalPath);
             }
-            var extension = Path.GetExtension(file.FileName).ToLower();
             var uniqueFileName = $"{Guid.NewGuid()}{extension}";
             var fullPhysicalPath=Path.Combine(physicalPath, uniqueFileName);
 

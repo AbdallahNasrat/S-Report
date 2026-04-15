@@ -115,8 +115,13 @@ namespace Application.Services.ReportServices
 
         public async Task<bool> UpdateReportStatusAsync(int reportId, ReportStatus newState) {
             var report = await _uow.ReportsRepo.GetByIdAsync(reportId);
+            var user = await _uow.UsersRepo.GetByIdAsync(report.UserId);
             if (report == null) {
-                throw new NotFoundException("Report not found");
+                throw new NotFoundException("Report does not found");
+            }
+            if (user == null)
+            {
+                throw new NotFoundException("user does not found");
             }
             if (report.State == newState) return true;
 
@@ -124,7 +129,7 @@ namespace Application.Services.ReportServices
             {
                 throw new Exception("Sorry, the status of a report that has already been resolved cannot be changed.");
             }
-            report.State = newState;                      
+            report.State = newState;            
             return await _uow.SaveChangesAsync() > 0;
         }
         public async Task<bool> CancelReportAsync(int reportId) {
@@ -156,6 +161,27 @@ namespace Application.Services.ReportServices
             report.State = ReportStatus.InProgress;
             return await _uow.SaveChangesAsync() > 0;
         }
+        public async Task<bool> ValidateReportAsync(int reportId, bool isValid) {
+            var report = await _uow.ReportsRepo.GetByIdAsync(reportId);
+            if (report == null) throw new NotFoundException("The Report does not exist!");
+
+            var user = await _uow.UsersRepo.GetByIdAsync(report.UserId);
+            if (user == null) throw new NotFoundException("The User  does not exist!");
+
+            report.IsValid = isValid;
+
+            if (isValid)
+            {
+                user.Rate += 0.5m;
+            }
+            else {
+                user.Rate -= 1;
+            }
+            user.Rate = Math.Clamp(user.Rate, 0.0m, 5);
+
+            return await _uow.SaveChangesAsync()>0;
+        }
+
 
 
     }

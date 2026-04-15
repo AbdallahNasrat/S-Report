@@ -20,6 +20,7 @@ namespace Application.Services.ReportServices
         public Task<bool> AddAILayer(Report report);
         public Task<bool> CancelReportAsync(int reportId);
         public Task<bool> AssignTeamToReportAsync(int reportId, int teamId);
+        public Task<bool> ValidateReportAsync(int reportId, bool isValid);
 
 
 
