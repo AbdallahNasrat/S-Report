@@ -11,7 +11,7 @@ namespace Domain.Interfaces.Repositories
     {
         //Add
         public void Add(T entity);
-
+        public Task AddAsync(T entity); 
         //Delete
         public void Remove(T Entity);
 

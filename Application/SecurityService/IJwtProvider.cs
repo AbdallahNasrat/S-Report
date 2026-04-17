@@ -9,6 +9,6 @@ namespace Application.SecurityService
 {
     public interface IJwtProvider
     {
-        public string GenerateToken(User user);
+        string GenerateToken(User user, int? employeeId = null);
     }
 }

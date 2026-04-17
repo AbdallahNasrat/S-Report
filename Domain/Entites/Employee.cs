@@ -10,19 +10,11 @@ namespace Domain.Entites
     public class Employee
     {
         public int Id { get; set; }
-        public string NationalId { get; set; }
-        public string FName { get; set; }
-        public string SName { get; set; }
-        public DateTime Birthdate { get; set; }
         public int Salary { get; set; }
-        public string Address { get; set; }
-        public string Email { get; set; }
-        public string Password { get; set; }
-        public string Phone { get; set; }
-        public Genders Gender { get; set; }
 
         //Relationship
-
+        public int UserId { get; set; }
+        public User User { get; set; }
         public int? TeamId { get; set; }
         public Team? Team { get; set; }
         public int? RoleId { get; set; }

@@ -15,7 +15,7 @@ namespace Domain.Entites
         public string SName { get; set; }
         public string Address { get; set; }
         public string Email { get; set; }
-        public string Password { get; set; }
+        public string PasswordHash { get; set; }
         public string Phone { get; set; }
         public Genders Gender { get; set; }
         public DateTime Birthdate { get; set; }
@@ -30,6 +30,8 @@ namespace Domain.Entites
         public City City { get; set; }
         public ICollection<Report> Reports { get; set; } = new HashSet<Report>();
         public ICollection<Notification> Notifications { get; set; } = new HashSet<Notification>();
+        public Employee EmployeeProfile { get; set; }
+
 
 
     }

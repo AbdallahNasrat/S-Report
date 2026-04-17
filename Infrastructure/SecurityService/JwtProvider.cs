@@ -16,12 +16,16 @@ namespace Infrastructure.SecurityService
         {
             _jwtOptions= jwtOptions.Value;
         }
-        public string GenerateToken(User user){
+        public string GenerateToken(User user ,int? employeeId = null){
             var claims = new List<Claim>() {
                 new Claim(ClaimTypes.NameIdentifier ,user.Id.ToString()),
                 new Claim(ClaimTypes.Email , user.Email),
-                new Claim(ClaimTypes.Role , user.Role.ToString())
+                new Claim(ClaimTypes.Role, user.Role?.Name ?? "User")
             };
+            if (employeeId.HasValue)
+            {
+                claims.Add(new Claim("EmployeeId", employeeId.Value.ToString()));
+            }
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.Key));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

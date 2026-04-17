@@ -21,11 +21,13 @@ namespace Application.Services.UserServices
         public async Task<string> LoginAsync(string email, string password)
         {
             var user =  await _uow.UsersRepo.GetUserByEmailAsync(email);
-            if (user == null || user.Password != password) throw new UnauthorizedAccessException("Incorrect email address or password");
+            bool isPasswordValid = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
+            if (user == null || !isPasswordValid) throw new UnauthorizedAccessException("Incorrect email address or password");
 
 
             var token = _jwtProvider.GenerateToken(user);
             return token;
         }
+
     }
 }

@@ -53,5 +53,11 @@ namespace Infrastructure.Repos
         {
             _context.Set<T>().Update(entity);
         }
+
+        public async Task AddAsync(T entity)
+        {
+             await _context.Set<T>().AddAsync(entity);
+            return;
+        }
     }
 }
