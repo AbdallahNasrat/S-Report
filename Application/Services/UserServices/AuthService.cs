@@ -23,8 +23,6 @@ namespace Application.Services.UserServices
             var user =  await _uow.UsersRepo.GetUserByEmailAsync(email);
             bool isPasswordValid = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
             if (user == null || !isPasswordValid) throw new UnauthorizedAccessException("Incorrect email address or password");
-
-
             var token = _jwtProvider.GenerateToken(user);
             return token;
         }

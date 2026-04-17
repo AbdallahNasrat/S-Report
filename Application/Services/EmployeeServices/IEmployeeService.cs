@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Application.DTOs.UserDTOs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,6 @@ namespace Application.Services.EmployeeServices
 {
     public interface IEmployeeService
     {
-        public Task<bool> RegisterEmployeeAsync();
+        public Task<bool> RegisterEmployeeAsync(RegisterUserDto dto);
     }
 }
