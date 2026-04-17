@@ -1,5 +1,11 @@
-using Infrastructure;
 using Application.DI;
+using Infrastructure;
+using Infrastructure.SecurityService;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.IdentityModel.Tokens.Experimental;
+using System.Text;
 namespace Presentation
 {
     public class Program
@@ -18,6 +24,23 @@ namespace Presentation
             //DB -- Link Database At infrastructure project with Presentation Project
             builder.Services.AddInfrastructureServices(builder.Configuration);
             builder.Services.AddApplicationService();
+            var jwtSections = builder.Configuration.GetSection("JwtSettings");
+            var jwtOptions = jwtSections.Get<JwtOptions>();
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidIssuer = jwtOptions.Issuer,
+                        ValidateAudience = true,
+                        ValidAudience = jwtOptions.Audience,
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key)),
+                        ValidateLifetime = true,
+                        ClockSkew = TimeSpan.Zero
+                    };
+                });
 
 
             var app = builder.Build();
@@ -31,6 +54,7 @@ namespace Presentation
 
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
 

@@ -60,7 +60,7 @@ namespace Application.Services.ReportServices
         }
         
 
-        public async Task<IEnumerable<ReportSummaryDto>> GetMyReportsAsync(int userId, int pageNumber=1, int pageSize=5)
+        public async Task<IEnumerable<ReportSummaryDto>> GetMyReportsAsync(int userId, int pageNumber, int pageSize)
         {
             var MyReports = await _uow.ReportsRepo.GetReportsByUserIdAsync(userId,pageNumber,pageSize);
             var result = MyReports.Select(r => new ReportSummaryDto()

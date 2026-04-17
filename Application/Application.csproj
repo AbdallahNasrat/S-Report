@@ -10,7 +10,6 @@
     <Folder Include="Interfaces\" />
     <Folder Include="Services\MapServices\" />
     <Folder Include="Services\AdminServices\" />
-    <Folder Include="Services\UserServices\" />
   </ItemGroup>
 
   <ItemGroup>

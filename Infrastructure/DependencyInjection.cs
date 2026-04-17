@@ -1,10 +1,12 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore;
+﻿using Application.SecurityService;
+using Application.Services.FileService;
 using Domain.Interfaces.Repositories;
 using Infrastructure.Repos;
-using Application.Services.FileService;
-using Domain.Services;
+using Infrastructure.SecurityService;
+using Infrastructure.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 
 namespace Infrastructure
@@ -21,6 +23,8 @@ namespace Infrastructure
             services.AddScoped<IUnitOfWork,UnitOfWork>();
             services.AddScoped<INotificationRepository, NotificationRepo>();
             services.AddScoped<IFileService, FileService>();
+            services.AddScoped<IJwtProvider, JwtProvider>();
+            services.Configure<JwtOptions>(configuration.GetSection("JwtSettings"));
 
             return services;
 
