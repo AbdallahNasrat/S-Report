@@ -8,11 +8,11 @@ namespace Application.DTOs.UserDTOs
 {
     public class LoginResponseDTO
     {
-        public string Token;
-        public string FirstName;
-        public string Role;
-        public int UserId;
-        public int CityId;
-        public int? EmployeeId;
+        public string Token { get; set; }
+        public string FirstName { get; set; }
+        public string Role { get; set; }
+        public int UserId { get; set; }
+        public int CityId { get; set; }
+        public int? EmployeeId { get; set; }
     }
 }

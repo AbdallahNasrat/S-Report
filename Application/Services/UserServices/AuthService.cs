@@ -25,7 +25,7 @@ namespace Application.Services.UserServices
         {
             var user =  await _uow.UsersRepo.GetUserByEmailAsync(email);
             
-            if (user == null || BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+            if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
                 throw new UnauthorizedAccessException("Incorrect email address or password");
             var token = _jwtProvider.GenerateToken(user);
             var response = new LoginResponseDTO()

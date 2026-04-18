@@ -26,5 +26,12 @@ namespace Presentation.Controllers
             return BadRequest("Something went wrong while saving the user.");
 
         }
+
+        [HttpPost("Login")]
+        public async Task<ActionResult<LoginResponseDTO>> Login([FromBody]LoginDTO dto) {
+            var result = await _authService.LoginAsync(dto.Email, dto.Password);
+            return Ok(result);
+
+        }
     }
 }
