@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Linq.Expressions;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Infrastructure.Repos
 {
@@ -58,6 +59,11 @@ namespace Infrastructure.Repos
         {
              await _context.Set<T>().AddAsync(entity);
             return;
+        }
+        public async Task<T> GetFirstOrDefaultAsync(Expression<Func<T, bool>> predicate)
+        {
+
+            return await _context.Set<T>().FirstOrDefaultAsync(predicate);
         }
     }
 }

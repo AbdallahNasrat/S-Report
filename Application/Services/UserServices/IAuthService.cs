@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Application.DTOs.UserDTOs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +9,10 @@ namespace Application.Services.UserServices
 {
     public interface IAuthService
     {
-        public Task<string> LoginAsync(string email , string password);
+        public Task<LoginResponseDTO> LoginAsync(string email , string password);
+        public Task<bool> LogUp(RegisterUserDto dto, int roleId);
+
+
 
     }
 }

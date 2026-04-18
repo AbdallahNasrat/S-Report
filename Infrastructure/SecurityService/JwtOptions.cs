@@ -8,9 +8,9 @@ namespace Infrastructure.SecurityService
 { 
     public class JwtOptions
     {
-        public string Key = string.Empty;
-        public string Issuer = string.Empty;
-        public string Audience = string.Empty;
+        public string Key { get; set; }
+        public string Issuer { get; set; }
+        public string Audience { get; set; }
         public int AccessTokenExpirationMinutes { get; set; }
     }
 

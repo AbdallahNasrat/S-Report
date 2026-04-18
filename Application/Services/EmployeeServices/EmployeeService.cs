@@ -1,4 +1,6 @@
-﻿using Application.DTOs.EmployeeDTOs;
+﻿using Application.Constants;
+using Application.DTOs.EmployeeDTOs;
+using Application.DTOs.UserDTOs;
 using Domain.Entites;
 using Domain.Enums;
 using Domain.Interfaces.Repositories;
@@ -35,23 +37,12 @@ namespace Application.Services.EmployeeServices
                 Phone = dto.Phone,
                 CityId = dto.CityId,
                 Birthdate = dto.Birthdate,
-                RoleId = 2, //employee
+                RoleId = AppRoles.Employee, //employee
                 Volunteer = true,
-                Address= dto.HomeAddress,                   
+                Address= dto.HomeAddress,      
+                Gender = dto.Gender,
             };
-            string genderString = dto.Gender;
-
             
-            if (Enum.TryParse<Genders>(genderString, true, out var genderEnum))
-            {
-               
-                user.Gender = genderEnum;
-            }
-            else
-            {
-
-                throw new Exception("inValid Option");
-            }
 
             await _uow.UsersRepo.AddAsync(user);
             await _uow.SaveChangesAsync(); 
@@ -67,6 +58,11 @@ namespace Application.Services.EmployeeServices
             await _uow.EmployeesRepo.AddAsync(employee);
             await _uow.SaveChangesAsync() ;
             return true;
+        }
+
+        public Task<bool> RegisterEmployeeAsync(RegisterUserDto dto)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -12,6 +12,7 @@ namespace Infrastructure.Repos
     {
         public EmployeeRepo(Context context) : base(context)
         {
+
         }
     }
 }

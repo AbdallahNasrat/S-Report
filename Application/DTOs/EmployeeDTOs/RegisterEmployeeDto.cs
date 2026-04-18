@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Domain.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,7 +17,7 @@ namespace Application.DTOs.EmployeeDTOs
         public string Password { get; set; }
         public string Salary { get; set; }
         public string Phone { get; set; }
-        public string Gender { get; set; }
+        public Genders Gender { get; set; }
         public DateTime Birthdate { get; set; }
         public int CityId { get; set; }
         public int TeamId { get; set; }

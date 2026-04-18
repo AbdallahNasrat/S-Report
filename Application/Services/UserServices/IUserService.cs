@@ -10,7 +10,6 @@ namespace Application.Services.UserServices
 {
     public interface IUserService
     {
-        public Task<bool> LogUp(RegisterUserDto dto , int roleId);
 
     }
 }

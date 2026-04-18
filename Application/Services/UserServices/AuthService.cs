@@ -1,4 +1,7 @@
-﻿using Application.SecurityService;
+﻿using Application.Constants;
+using Application.DTOs.UserDTOs;
+using Application.SecurityService;
+using Domain.Entites;
 using Domain.Exceptions;
 using Domain.Interfaces.Repositories;
 using System;
@@ -18,14 +21,55 @@ namespace Application.Services.UserServices
             _uow = uow;
             _jwtProvider = jwtProvider;
         }
-        public async Task<string> LoginAsync(string email, string password)
+        public async Task<LoginResponseDTO> LoginAsync(string email, string password)
         {
             var user =  await _uow.UsersRepo.GetUserByEmailAsync(email);
-            bool isPasswordValid = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
-            if (user == null || !isPasswordValid) throw new UnauthorizedAccessException("Incorrect email address or password");
+            
+            if (user == null || BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+                throw new UnauthorizedAccessException("Incorrect email address or password");
             var token = _jwtProvider.GenerateToken(user);
-            return token;
+            var response = new LoginResponseDTO()
+            {
+                Token = token,
+                UserId = user.Id,
+                CityId = user.CityId,
+                FirstName = user.FName,
+                Role = user.Role?.Name
+            };
+            if (response.Role == "Employee") {
+                var employee = await _uow.EmployeesRepo.GetFirstOrDefaultAsync(e => e.UserId == user.Id);
+                if(employee != null)
+                    response.EmployeeId = employee.Id;
+            }
+                return response;           
         }
+        public async Task<bool> LogUp(RegisterUserDto dto, int roleId = AppRoles.User)
+        {
+            var oldUser = await _uow.UsersRepo.GetUserByEmailAsync(dto.Email);
+            if (oldUser != null)
+            {
+                throw new Exception("Used Email Address ");
+            }
+            var newUser = new User()
+            {
+                NationalId = dto.NationalId,
+                FName = dto.FirstName,
+                SName = dto.SecoundName,
+                Address = dto.HomeAddress,
+                Email = dto.Email,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+                Phone = dto.Phone,
+                Gender = dto.Gender,
+                Birthdate = dto.Birthdate,
+                Volunteer = true, // default
+                CityId = dto.CityId,
+                RoleId = roleId
+            };
+            _uow.UsersRepo.Add(newUser);
+            return await _uow.SaveChangesAsync() > 0;
+
+        }
+
 
     }
 }
