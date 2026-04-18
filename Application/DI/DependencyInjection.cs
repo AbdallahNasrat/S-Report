@@ -1,4 +1,7 @@
-﻿using Application.Services.ReportServices;
+﻿using Application.Services.AdminServices;
+using Application.Services.EmployeeServices;
+using Application.Services.GeneralServices;
+using Application.Services.ReportServices;
 using Application.Services.UserServices;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -15,6 +18,11 @@ namespace Application.DI
             services.AddScoped<IReportService, ReportService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IAdminService, AdminService>();
+            services.AddScoped<IEmployeeService, EmployeeService>();
+            services.AddScoped<ILookupsService, LookupService>();
+
+
             return services;
 
         }
