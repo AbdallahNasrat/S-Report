@@ -18,11 +18,19 @@ namespace Application.Services.AdminServices
         {
             _uow = uow;
         }
-        public async Task<bool> RegisterEmployeeAsync(RegisterEmployeeDto dto)
+
+        public async Task<bool> AddAdminAsync(RegisterEmployeeDto dto)
+        {
+            var newAdmin = await RegisterEmployeeAsync(dto, AppRoles.Admin);
+            return newAdmin;
+        }
+
+        public async Task<bool> RegisterEmployeeAsync(RegisterEmployeeDto dto , int role=2)
         {
             User userCheck = await _uow.UsersRepo.GetUserByEmailAsync(dto.Email);
             if (userCheck != null) throw new Exception("Email Address is exist");
-
+            userCheck = await _uow.UsersRepo.GetFirstOrDefaultAsync(u => u.NationalId == dto.NationalId);
+            if (userCheck != null) { throw new Exception("the National ID is used"); }
             var user = new User
             {
                 Email = dto.Email,
@@ -33,7 +41,7 @@ namespace Application.Services.AdminServices
                 Phone = dto.Phone,
                 CityId = dto.CityId,
                 Birthdate = dto.Birthdate,
-                RoleId = AppRoles.Employee, //employee
+                RoleId = role, //employee
                 Volunteer = true,
                 Address = dto.HomeAddress,
                 Gender = dto.Gender,

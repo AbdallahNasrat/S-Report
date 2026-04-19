@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Domain.Entites;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Domain.Enums;
 
 namespace Infrastructure.Configuration
 {
@@ -23,6 +24,9 @@ namespace Infrastructure.Configuration
 
             //properties 
             builder.Property(p => p.Name).HasMaxLength(100);
+            builder.Property(p => p.State).HasConversion<string>()
+                .HasDefaultValue(TeamState.Available)
+                .HasMaxLength(25);
         }
     }
 }

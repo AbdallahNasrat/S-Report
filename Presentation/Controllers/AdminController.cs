@@ -1,4 +1,5 @@
-﻿using Application.DTOs.EmployeeDTOs;
+﻿using Application.Constants;
+using Application.DTOs.EmployeeDTOs;
 using Application.Services.AdminServices;
 using Domain.Entites;
 using Microsoft.AspNetCore.Authorization;
@@ -21,11 +22,19 @@ namespace Presentation.Controllers
 
         [HttpPost("AddEmployee")]
         public async Task<IActionResult> AddEmployee([FromBody] RegisterEmployeeDto dto) {          
-            var newEmployee = await _adminService.RegisterEmployeeAsync(dto);
+            var newEmployee = await _adminService.RegisterEmployeeAsync(dto,AppRoles.Employee);
             if (newEmployee)
-                return Ok("The employee has been successfully added.");
+                return Ok("The employee has been Successfully Added.");
             return BadRequest("An error occurred");
 
+        }
+        [HttpPost("AddAdmin")]
+        public async Task<IActionResult> AddAdmin([FromBody] RegisterEmployeeDto dto) {
+            var newAdmin = await _adminService.AddAdminAsync(dto);
+            if (newAdmin) {
+                return Ok("The admin has been Successfully Added");
+            }
+            return BadRequest("An error occurred");
         }
     }
 }

@@ -11,6 +11,7 @@ namespace Domain.Entites
     {
         public int Id { get; set; }
         public string Name { get; set; }
+        public TeamState State { get; set; }
         //Relationship
         public ICollection<Employee> Employees { get; set; } = new HashSet<Employee>();
         public int CityId { get; set; }
