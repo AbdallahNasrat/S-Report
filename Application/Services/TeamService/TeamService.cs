@@ -17,26 +17,26 @@ namespace Application.Services.TeamService
         {
             _uow = uow;
         }
-
+        
         public async Task<bool> AddTeamAsync(CreateTeamDTO dto)
         {
-            var existTeam = await _uow.TeamRepo.GetFirstOrDefaultAsync(t => t.Name == dto.Name);
+            var existTeam = await _uow.TeamRepo.GetFirstOrDefaultAsync(t => t.Name == dto.Name,false);
             if (existTeam!=null)
             {
-                throw new Exception("TeamName is used");
+                return false;
             }
 
             var newTeam = new Team()
             {
                 Name = dto.Name,
                 CityId = dto.CityId,
-                State = Domain.Enums.TeamState.Available
+                State = TeamState.Available
             };
             _uow.TeamRepo.Add(newTeam);
             return await _uow.SaveChangesAsync() > 0;
         }
 
-        public async Task<bool> BlockTeam(int id)
+        public async Task<bool> BlockTeamAsync(int id)
         {
             var team = await _uow.TeamRepo.GetByIdAsync(id);
             if (team == null) { throw new Exception("team does not exist"); }
@@ -44,24 +44,77 @@ namespace Application.Services.TeamService
             return await _uow.SaveChangesAsync() > 0;
         }
 
-        public async Task<TeamDTO> GetTeamByIdAsync(int teamId)
+        public async Task<TeamDTO?> GetTeamByIdAsync(int teamId)
         {
-            throw new NotImplementedException();
+            var team = await _uow.TeamRepo.GetByIdAsync(teamId,false);
+            if (team == null) { return null; }
+            var dto = new TeamDTO() {
+                Id = team.Id,
+                Name = team.Name,
+                CityId = team.CityId,
+                State = team.State,
+            };
+            return dto;
         }
 
-        public async Task<TeamDTO> GetTeamByName(string teamName)
+        public async Task<TeamDTO?> GetTeamByNameAsync(string teamName)
         {
-            throw new NotImplementedException();
+            var team = await _uow.TeamRepo.GetFirstOrDefaultAsync(t => t.Name == teamName, false);
+            if (team == null) return null;
+            var dto = new TeamDTO()
+            {
+                Id = team.Id,
+                Name = team.Name,
+                CityId = team.CityId,
+                State = team.State,
+            };
+            return dto;
         }
 
-        public Task<IEnumerable<Team>> GetTeams()
+        public async Task<IEnumerable<TeamDTO>?> GetTeamsByCityIdAsync(int cityId)
         {
-            throw new NotImplementedException();
+            var teams = await _uow.TeamRepo.GetAllAsync(t => t.CityId == cityId);
+            if(teams == null) return [];
+            var result = teams.Select(t => new TeamDTO()
+            {
+                Id = t.Id,
+                Name = t.Name,
+                CityId = t.CityId,
+                State = t.State,
+            });
+            return result;
+        }
+        public async Task<IEnumerable<TeamDTO>?> GetTeamsAsync()
+        {
+            var teams = await _uow.TeamRepo.GetAllAsync();
+            if(teams == null) return [];
+            var result = teams.Select(t => new TeamDTO()
+            {
+                Id = t.Id,
+                Name = t.Name,
+                CityId = t.CityId,
+                State = t.State,
+            });
+            return result;
         }
 
-        public Task<bool> UpdateTeam(TeamDTO dto)
+        public async Task<bool> UpdateTeamAsync(TeamDTO dto)
         {
-            throw new NotImplementedException();
+            var team = await _uow.TeamRepo.GetByIdAsync(dto.Id);
+            if (team == null) return false;
+            team.Name = dto.Name;
+            team.CityId = dto.CityId;
+            return await _uow.SaveChangesAsync()>0;
+            
         }
+        public async Task<bool> UpdateTeamStateAsync(UpdateTeamStateDTO dto)
+        {
+            var team = await _uow.TeamRepo.GetByIdAsync(dto.TeamId);
+            if (team == null) return false;
+            team.State = dto.State;
+            return await _uow.SaveChangesAsync()>0;
+            
+        }
+
     }
 }

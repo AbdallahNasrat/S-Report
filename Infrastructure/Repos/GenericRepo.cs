@@ -2,14 +2,13 @@
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Linq.Expressions;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Infrastructure.Repos
 {
     public class GenericRepo<T> : IGenericRepository<T> where T : class
 
     {
-        protected  readonly Context _context;
+        protected readonly Context _context;
         public GenericRepo(Context context)
         {
             _context = context;
@@ -25,16 +24,18 @@ namespace Infrastructure.Repos
         }
 
         public async Task<IEnumerable<T>> GetAllAsync(
-            Expression<Func<T, bool>> filter = null ,
-            string properties="")
+            Expression<Func<T, bool>> filter = null,
+            string properties = "")
         {
-            
+
             IQueryable<T> query = _context.Set<T>();
-            if (filter != null) {
+            if (filter != null)
+            {
                 query = query.Where(filter);
 
             }
-            if (!string.IsNullOrEmpty(properties)) {
+            if (!string.IsNullOrEmpty(properties))
+            {
                 string[] values = properties.Split(',');
                 foreach (var prop in values)
                 {
@@ -42,12 +43,18 @@ namespace Infrastructure.Repos
                 }
             }
             return await query.AsNoTracking().ToListAsync();
-        }   
+        }
+        //public async Task<IEnumerable<T>> GetAllReadOnlyAsync() { };
 
-        public async Task<T?> GetByIdAsync(int id)
+        public async Task<T?> GetByIdAsync(int id, bool tracked = true)
         {
-            return await _context.Set<T>().FindAsync(id);
-            
+            IQueryable<T> query = _context.Set<T>();
+
+            if (!tracked)
+            {
+                query.AsNoTracking();
+            }
+            return await query.FirstOrDefaultAsync(e => EF.Property<int>(e, "Id") == id);
         }
 
         public void Update(T entity)
@@ -57,13 +64,23 @@ namespace Infrastructure.Repos
 
         public async Task AddAsync(T entity)
         {
-             await _context.Set<T>().AddAsync(entity);
+            await _context.Set<T>().AddAsync(entity);
             return;
         }
-        public async Task<T> GetFirstOrDefaultAsync(Expression<Func<T, bool>> predicate)
+        public async Task<T?> GetFirstOrDefaultAsync(Expression<Func<T, bool>> predicate, bool tracked = true)
         {
+            IQueryable<T> query = _context.Set<T>();
+            
+            if (!tracked)
+            {
+                query = query.AsNoTracking();
+            }
+            if (predicate != null)
+            {
+                return await query.FirstOrDefaultAsync(predicate);
+            }
 
-            return await _context.Set<T>().FirstOrDefaultAsync(predicate);
+            return await query.FirstOrDefaultAsync();
+            }
         }
     }
-}

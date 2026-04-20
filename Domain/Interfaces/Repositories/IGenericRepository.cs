@@ -19,11 +19,12 @@ namespace Domain.Interfaces.Repositories
         public void Update(T entity);
 
         //SearchById
-        public Task<T> GetByIdAsync(int id);
+        public Task<T> GetByIdAsync(int id, bool tracked = true);
 
         //GetAll 
         public Task<IEnumerable<T>> GetAllAsync(Expression<Func<T,bool>> filter = null,string properties="");
-        public  Task<T> GetFirstOrDefaultAsync(Expression<Func<T, bool>> predicate);
+        public  Task<T> GetFirstOrDefaultAsync(Expression<Func<T, bool>> predicate, bool tracked = true);
+        //public Task<IEnumerable<T>> GetAllReadOnlyAsync();
 
 
     }

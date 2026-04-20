@@ -11,10 +11,12 @@ namespace Application.Services.TeamService
     public interface ITeamService
     {
         public Task<bool> AddTeamAsync(CreateTeamDTO dto);
-        public Task<TeamDTO> GetTeamByIdAsync(int teamId);
-        public Task<TeamDTO> GetTeamByName(string teamName);
-        public Task<IEnumerable<Team>> GetTeams();
-        public Task<bool> BlockTeam(int id);
-        public Task<bool> UpdateTeam(TeamDTO dto);
+        public Task<TeamDTO?> GetTeamByIdAsync(int teamId);
+        public Task<TeamDTO?> GetTeamByNameAsync(string teamName);
+        public Task<IEnumerable<TeamDTO>?> GetTeamsAsync();
+        public Task<IEnumerable<TeamDTO>?> GetTeamsByCityIdAsync(int cityId);
+        public Task<bool> BlockTeamAsync(int id);
+        public Task<bool> UpdateTeamAsync(TeamDTO dto);
+        public Task<bool> UpdateTeamStateAsync(UpdateTeamStateDTO dto);
     }
 }
