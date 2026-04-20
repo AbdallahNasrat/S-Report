@@ -18,5 +18,6 @@ namespace Application.Services.TeamService
         public Task<bool> BlockTeamAsync(int id);
         public Task<bool> UpdateTeamAsync(TeamDTO dto);
         public Task<bool> UpdateTeamStateAsync(UpdateTeamStateDTO dto);
+        public Task<bool> AssignEmployeeToTeamAsync(AssignEmployeeToTeamDTO dto);
     }
 }

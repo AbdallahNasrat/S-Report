@@ -113,5 +113,17 @@ namespace WebApi.Controllers
 
             return BadRequest(new { message = "The ban on the team failed" });
         }
+        // PATCH: api/teams/assign-employee
+        [HttpPatch("assign-employee")]
+        [Authorize(Roles = "Admin")] 
+        public async Task<IActionResult> AssignEmployee([FromBody] AssignEmployeeToTeamDTO dto)
+        {
+            var result = await _teamService.AssignEmployeeToTeamAsync(dto);
+
+            if (result)
+                return Ok(new { message = "The employee was successfully added to the team" });
+
+            return BadRequest(new { message = "Failure in the connection process" });
+        }
     }
 }

@@ -115,6 +115,20 @@ namespace Application.Services.TeamService
             return await _uow.SaveChangesAsync()>0;
             
         }
+        public async Task<bool> AssignEmployeeToTeamAsync(AssignEmployeeToTeamDTO dto)
+        {
+            
+            var employee = await _uow.EmployeesRepo.GetByIdAsync(dto.EmployeeId);
+            if (employee == null) throw new Exception("The employee is not present.");
+
+   
+            var teamExists = await _uow.TeamRepo.GetFirstOrDefaultAsync(t => t.Id == dto.TeamId, tracked: false);
+            if (teamExists == null) throw new Exception("The team is not present.");
+            
+            employee.TeamId = dto.TeamId;
+            
+            return await _uow.SaveChangesAsync() > 0;
+        }
 
     }
 }
