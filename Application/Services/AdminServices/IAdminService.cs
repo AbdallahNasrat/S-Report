@@ -9,7 +9,6 @@ namespace Application.Services.AdminServices
 {
     public interface IAdminService
     {
-        public Task<bool> RegisterEmployeeAsync(RegisterEmployeeDto dto, int role);
         public Task<bool> AddAdminAsync(RegisterEmployeeDto dto);
 
     }

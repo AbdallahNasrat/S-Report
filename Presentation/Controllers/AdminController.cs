@@ -20,14 +20,7 @@ namespace Presentation.Controllers
             _adminService = adminService;
         }
 
-        [HttpPost("AddEmployee")]
-        public async Task<IActionResult> AddEmployee([FromBody] RegisterEmployeeDto dto) {          
-            var newEmployee = await _adminService.RegisterEmployeeAsync(dto,AppRoles.Employee);
-            if (newEmployee)
-                return Ok("The employee has been Successfully Added.");
-            return BadRequest("An error occurred");
 
-        }
         [HttpPost("AddAdmin")]
         public async Task<IActionResult> AddAdmin([FromBody] RegisterEmployeeDto dto) {
             var newAdmin = await _adminService.AddAdminAsync(dto);

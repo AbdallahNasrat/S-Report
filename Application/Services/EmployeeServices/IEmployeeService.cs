@@ -10,6 +10,11 @@ namespace Application.Services.EmployeeServices
 {
     public interface IEmployeeService
     {
-        
+        public Task<bool> EditEmployeeDataAsync(EmployeeDTO dto);
+        public Task<EmployeeDTO> GetEmployeeAsync(int id);
+        public Task<IEnumerable<EmployeeDTO>> GetAllEmployeesAsync();
+        public Task<bool> RegisterEmployeeAsync(RegisterEmployeeDto dto, int role);
+
+
     }
 }
