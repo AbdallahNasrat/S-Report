@@ -21,6 +21,7 @@ namespace Domain.Entites
         public DateTime Birthdate { get; set; }
         public bool Volunteer { get; set; }
         public decimal Rate { get; set; }
+        public string? FcmToken { get; set; }
 
 
         //Relationship

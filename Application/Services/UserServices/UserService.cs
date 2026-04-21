@@ -19,7 +19,13 @@ namespace Application.Services.UserServices
             _uow = uow;
         }
 
-
-      
+        public async Task<bool> UpdateFcmTokenAsync(int userId, string token)
+        {
+            var user = await _uow.UsersRepo.GetByIdAsync(userId);
+            if(user == null)
+                return false;
+            user.FcmToken = token;
+            return await _uow.SaveChangesAsync() > 0 ;
+        }
     }
 }

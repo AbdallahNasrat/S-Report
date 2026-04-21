@@ -1,8 +1,10 @@
 ﻿using Application.Constants;
 using Application.DTOs.UserDTOs;
 using Application.Services.UserServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Presentation.Controllers
 {
@@ -33,5 +35,6 @@ namespace Presentation.Controllers
             return Ok(result);
 
         }
+   
     }
 }

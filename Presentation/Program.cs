@@ -1,8 +1,11 @@
 using Application.DI;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 using Infrastructure;
 using Infrastructure.SecurityService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Identity.Client.Platforms.Features.DesktopOs.Kerberos;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.IdentityModel.Tokens.Experimental;
 using Microsoft.OpenApi.Models;
@@ -74,6 +77,9 @@ namespace Presentation
                     };
                 });
 
+            FirebaseApp.Create(new AppOptions() {
+                Credential = GoogleCredential.FromFile("firebase-config.json")
+            });
 
             var app = builder.Build();
 

@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="FirebaseAdmin" Version="3.5.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.3.9" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting.Server.Abstractions" Version="2.3.9" />
@@ -20,6 +21,12 @@
   <ItemGroup>
     <ProjectReference Include="..\Application\Application.csproj" />
     <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="firebase-config.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

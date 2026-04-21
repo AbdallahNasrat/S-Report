@@ -1,6 +1,8 @@
 ﻿using Application.SecurityService;
 using Application.Services.FileService;
+using Application.Services.NotficationServices;
 using Domain.Interfaces.Repositories;
+using Infrastructure.Notifications;
 using Infrastructure.Repos;
 using Infrastructure.SecurityService;
 using Infrastructure.Services;
@@ -25,6 +27,7 @@ namespace Infrastructure
             services.AddScoped<IFileService, FileService>();
             services.AddScoped<IJwtProvider, JwtProvider>();
             services.Configure<JwtOptions>(configuration.GetSection("JwtSettings"));
+            services.AddScoped<INotificationService, FirebaseNotificationService>();
 
             return services;
 

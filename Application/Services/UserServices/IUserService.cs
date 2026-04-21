@@ -10,6 +10,6 @@ namespace Application.Services.UserServices
 {
     public interface IUserService
     {
-
+        public Task<bool> UpdateFcmTokenAsync(int userId, string token);
     }
 }
