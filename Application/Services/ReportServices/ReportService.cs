@@ -22,7 +22,7 @@ namespace Application.Services.ReportServices
             throw new NotImplementedException();
         }
 
-        public async Task<bool> AddReportAsync(CreateReportDTO reportDTO, int userId)
+        public async Task<bool> AddReportAsync(int userId , CreateReportDTO reportDTO)
         {
             throw new NotImplementedException();
         }
