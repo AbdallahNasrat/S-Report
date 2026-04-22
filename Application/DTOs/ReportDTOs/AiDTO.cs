@@ -8,9 +8,11 @@ namespace Application.DTOs.ReportDTOs
 {
     public class AiDTO
     {
+        public string Type { get; set; }
         public string Priority { get; set; }
-        public string ReportType { get; set; }
-        public string Recommendation { get; set; }
+        public string Recommendations { get; set; }
+        public double ConfidenceScore { get; set; }
+
 
     }
 }

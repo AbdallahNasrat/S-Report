@@ -13,11 +13,9 @@ namespace Domain.Entites
         public DateTime Date { get; set; }
         public decimal Latitude { get; set; }
         public decimal Longitude { get; set; }
-        public Priorities Priority { get; set; }
         public string Description { get; set; }
         public ReportStatus State { get; set; }
         public bool? IsValid { get; set; }
-        public string? AiResult { get; set; }
 
 
         //Relationship
@@ -25,10 +23,10 @@ namespace Domain.Entites
         public User User { get; set; }
         public int CityId { get; set; }
         public City City { get; set; }
-        public int ReportTypeId { get; set; }
-        public ReportType ReportType { get; set; }
         public int? TeamId { get; set; }
         public Team? Team { get; set; }
         public ICollection<Media> Medias { get; set; } = new List<Media>();
+
+        public ReportAnalysis? ReportAnalysis { get; set; }
     }
 }

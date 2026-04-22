@@ -23,13 +23,13 @@ namespace Infrastructure.Configuration
                 .HasForeignKey(r => r.CityId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            builder.HasOne(r => r.ReportAnalysis)
+                .WithOne(a => a.Report)
+                .HasForeignKey<ReportAnalysis>(r => r.ReportId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-            //one ReportType with many Reports
 
-            builder.HasOne(r => r.ReportType)
-                .WithMany(t => t.Reports)
-                .HasForeignKey(r => r.ReportTypeId)
-                .OnDelete(DeleteBehavior.Restrict);
+
 
 
             //one team with many reports
@@ -40,14 +40,12 @@ namespace Infrastructure.Configuration
 
 
             //properties
-            builder.Property(p => p.Longitude).HasPrecision(18, 8);
-            builder.Property(p => p.Latitude).HasPrecision(18, 8);
-            builder.Property(p => p.Priority).HasConversion<string>().HasMaxLength(10);
+            builder.Property(p => p.Longitude).HasPrecision(18, 10);
+            builder.Property(p => p.Latitude).HasPrecision(18, 10);
             builder.Property(p => p.Description).HasMaxLength(1000);
-            builder.Property(p => p.AiResult).HasMaxLength(500);
             builder.Property(p => p.State).HasConversion<string>().HasMaxLength(50);
 
-            
+                
 
 
 

@@ -1,4 +1,5 @@
 ﻿using Application.SecurityService;
+using Application.Services.AiServices;
 using Application.Services.FileService;
 using Application.Services.NotficationServices;
 using Domain.Interfaces.Repositories;
@@ -28,6 +29,11 @@ namespace Infrastructure
             services.AddScoped<IJwtProvider, JwtProvider>();
             services.Configure<JwtOptions>(configuration.GetSection("JwtSettings"));
             services.AddScoped<INotificationService, FirebaseNotificationService>();
+            services.AddHttpClient<IAIService, AIService>(client =>
+            {
+                client.Timeout = TimeSpan.FromMinutes(3);
+            });
+            services.AddScoped<IAIService, AIService>();
 
             return services;
 

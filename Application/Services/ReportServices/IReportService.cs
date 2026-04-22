@@ -11,12 +11,12 @@ namespace Application.Services.ReportServices
 {
     public  interface IReportService
     {
-        public Task<bool> AddReportAsync(CreateReportDTO reportDTO, int userId);
+        public Task<bool> AddReportAsync(int userId, CreateReportDTO dto);
         public Task<bool> DeleteReportAsync(int reportId);
         public Task<bool> UpdateReportStatusAsync(int reportId, ReportStatus status);
-        public Task<IEnumerable<ReportSummaryDto>> GetMyReportsAsync(int userId, int pageNumber, int pageSize);
-        public Task<IEnumerable<ReportDetailsDto>> GetFilteredReportsAsync(int cityId, int pageNumber, int pageSize, bool excludeResolved);
-        public Task<ReportDetailsDto> GetReportByIdAsync(int reportId);
+        //public Task<IEnumerable<ReportSummaryDto>> GetMyReportsAsync(int userId, int pageNumber, int pageSize);
+        //public Task<IEnumerable<ReportDetailsDto>> GetFilteredReportsAsync(int cityId, int pageNumber, int pageSize, bool excludeResolved);
+        //public Task<ReportDetailsDto> GetReportByIdAsync(int reportId);
         public Task<bool> AddAILayer(Report report);
         public Task<bool> CancelReportAsync(int reportId);
         public Task<bool> AssignTeamToReportAsync(int reportId, int teamId);

@@ -1,4 +1,8 @@
 ﻿using Application.DTOs.ReportDTOs;
+using Application.Services.FileService;
+using Application.Services.AiServices;
+
+using Application.Services.AiServices;
 using Domain.Entites;
 using Domain.Enums;
 using Domain.Exceptions;
@@ -8,23 +12,80 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Application.Services.ReportServices
 {
     public class ReportService : IReportService
     {
-        IUnitOfWork _uow;
-        public ReportService(IUnitOfWork uow) {
+        private readonly IUnitOfWork _uow;
+        private readonly IFileService _fileService;
+        private readonly IAIService _aiService;
+        public ReportService(IUnitOfWork uow, IFileService fileService , IAIService aiService ) {
             _uow = uow;
+            _fileService = fileService;
+            _aiService = aiService;
         }
         public async Task<bool> AddAILayer(Report report)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<bool> AddReportAsync(int userId , CreateReportDTO reportDTO)
+        public async Task<bool> AddReportAsync(int userId , CreateReportDTO dto)
         {
-            throw new NotImplementedException();
+            var report = new Report()
+            {
+                Description = dto.Description,
+                Latitude = dto.Latitude,
+                Longitude = dto.Longitude,
+                CityId = dto.CityId,
+                UserId = userId,
+                Date = DateTime.UtcNow,
+                State = ReportStatus.Pending,
+                Medias = new List<Media>()
+
+            };
+
+            if (dto.ImageFiles != null && dto.ImageFiles.Count>0)
+            {
+                foreach (var image in dto.ImageFiles)
+                {
+                    var path = await _fileService.SaveReportMediaAsync(image, "images");
+                    report.Medias.Add(new Media
+                    {
+                        FilePath = path,
+                        Type = MediaType.Image
+                    });
+                }
+            }
+            string? voiceUrl = null;
+            
+            if (dto.VoiceFile != null) {
+                voiceUrl = await _fileService.SaveReportMediaAsync(dto.VoiceFile, "audio");
+                report.Medias.Add(new Media
+                {
+                    FilePath = voiceUrl,
+                    Type = MediaType.Audio
+                });
+            }
+            await _uow.ReportsRepo.AddAsync(report);
+            var result = await _uow.SaveChangesAsync() > 0;
+
+            if (result)
+            {
+                if (report.Medias.Any(m => m.Type == MediaType.Image))
+                {
+                    
+                    _ = Task.Run(() => _aiService.AnalyzeByImageAsync(report.Id, report.Medias.Where(m => m.Type == MediaType.Image).Select(m => m.FilePath).ToList()));
+                }
+                else
+                {
+                    
+                    _ = Task.Run(() => _aiService.AnalyzeByTextAndVoiceAsync(report.Id, report.Description, voiceUrl));
+                }
+            }
+
+            return true;
         }
 
         public async Task<bool> DeleteReportAsync(int reportId)
@@ -32,85 +93,85 @@ namespace Application.Services.ReportServices
             throw new NotImplementedException();
         }
 
-        public async Task<IEnumerable<ReportDetailsDto>> GetFilteredReportsAsync(int cityId, int pageNumber, int pageSize, bool excludeResolved)
-        {
-            var reports = await _uow.ReportsRepo.GetFilteredReportsAsync(cityId, pageNumber, pageSize, excludeResolved);
+        //public async Task<IEnumerable<ReportDetailsDto>> GetFilteredReportsAsync(int cityId, int pageNumber, int pageSize, bool excludeResolved)
+        //{
+        //    var reports = await _uow.ReportsRepo.GetFilteredReportsAsync(cityId, pageNumber, pageSize, excludeResolved);
 
-            var result = reports.Select(report => new ReportDetailsDto
-            {
-                ReportId = report.Id,
-                Date = report.Date,
-                Latitude = report.Latitude,
-                Longitude = report.Longitude,
-                Priority = report.Priority.ToString(),
-                Description = report.Description,
-                ReportState = report.State.ToString(),
-                IsValid = report.IsValid,
-                AiResult = report.AiResult,
-                ReporterName = $"{report.User.FName} {report.User.SName}", 
-                ReporterId = report.User.Id,
-                City = report.City.Name,
-                TeamName = report.Team?.Name ?? "No Team",
-                AttachedMedia = report.Medias.Select(m => new MediaResponseDto
-                {
-                    FileURL = m.FilePath,
-                    MediaType = m.Type.ToString()
-                }).ToList()}).ToList();
-            return result;
-        }
+        //    var result = reports.Select(report => new ReportDetailsDto
+        //    {
+        //        ReportId = report.Id,
+        //        Date = report.Date,
+        //        Latitude = report.Latitude,
+        //        Longitude = report.Longitude,
+        //        Priority = report.Priority.ToString(),
+        //        Description = report.Description,
+        //        ReportState = report.State.ToString(),
+        //        IsValid = report.IsValid,
+        //        AiResult = report.AiResult,
+        //        ReporterName = $"{report.User.FName} {report.User.SName}", 
+        //        ReporterId = report.User.Id,
+        //        City = report.City.Name,
+        //        TeamName = report.Team?.Name ?? "No Team",
+        //        AttachedMedia = report.Medias.Select(m => new MediaResponseDto
+        //        {
+        //            FileURL = m.FilePath,
+        //            MediaType = m.Type.ToString()
+        //        }).ToList()}).ToList();
+        //    return result;
+        //}
         
 
-        public async Task<IEnumerable<ReportSummaryDto>> GetMyReportsAsync(int userId, int pageNumber, int pageSize)
-        {
-            var MyReports = await _uow.ReportsRepo.GetReportsByUserIdAsync(userId,pageNumber,pageSize);
-            var result = MyReports.Select(r => new ReportSummaryDto()
-            {
-                ReportId = r.Id,
-                Description = r.Description,
-                Date = r.Date,
-                Latitude = r.Latitude,
-                Longitude = r.Longitude,
-                State = r.State.ToString(),
-                ReportType = r.ReportType.ToString(),
-                AttachedMedia = r.Medias.Select(m => new MediaResponseDto() {
-                    FileURL = m.FilePath,
-                    MediaType = m.Type.ToString()
-                }).ToList()
-            }).ToList();        
-            return result;
-        }
+        //public async Task<IEnumerable<ReportSummaryDto>> GetMyReportsAsync(int userId, int pageNumber, int pageSize)
+        //{
+        //    var MyReports = await _uow.ReportsRepo.GetReportsByUserIdAsync(userId,pageNumber,pageSize);
+        //    var result = MyReports.Select(r => new ReportSummaryDto()
+        //    {
+        //        ReportId = r.Id,
+        //        Description = r.Description,
+        //        Date = r.Date,
+        //        Latitude = r.Latitude,
+        //        Longitude = r.Longitude,
+        //        State = r.State.ToString(),
+        //        ReportType = r.ReportType.ToString(),
+        //        AttachedMedia = r.Medias.Select(m => new MediaResponseDto() {
+        //            FileURL = m.FilePath,
+        //            MediaType = m.Type.ToString()
+        //        }).ToList()
+        //    }).ToList();        
+        //    return result;
+        //}
 
-        public async Task<ReportDetailsDto> GetReportByIdAsync(int reportId)
-        {
-            var report = await _uow.ReportsRepo.GetReportWithDetailsAsync(reportId);
-            if (report == null) {
-                throw new NotFoundException("NotFoundException");
-            }
-            var result = new ReportDetailsDto()
-            {
-                ReportId = report.Id,
-                Date = report.Date,
-                Latitude = report.Latitude,
-                Longitude = report.Longitude,
-                Priority = report.Priority.ToString(),
-                Description = report.Description,
-                ReportState = report.State.ToString(),
-                IsValid = report.IsValid,
-                AiResult = report.AiResult,
-                ReporterName = $"{report.User.FName} {report.User.SName}",
-                ReporterId = report.User.Id,
-                City = report.City.Name,
-                TeamName = report.Team?.Name ?? "No Team",
-                AttachedMedia = report.Medias.Select(m => new MediaResponseDto
-                {
-                    FileURL = m.FilePath,
-                    MediaType = m.Type.ToString()
-                }).ToList()
-            };
-            return result;
+        //public async Task<ReportDetailsDto> GetReportByIdAsync(int reportId)
+        //{
+        //    var report = await _uow.ReportsRepo.GetReportWithDetailsAsync(reportId);
+        //    if (report == null) {
+        //        throw new NotFoundException("NotFoundException");
+        //    }
+        //    var result = new ReportDetailsDto()
+        //    {
+        //        ReportId = report.Id,
+        //        Date = report.Date,
+        //        Latitude = report.Latitude,
+        //        Longitude = report.Longitude,
+        //        Priority = report.Priority.ToString(),
+        //        Description = report.Description,
+        //        ReportState = report.State.ToString(),
+        //        IsValid = report.IsValid,
+        //        AiResult = report.AiResult,
+        //        ReporterName = $"{report.User.FName} {report.User.SName}",
+        //        ReporterId = report.User.Id,
+        //        City = report.City.Name,
+        //        TeamName = report.Team?.Name ?? "No Team",
+        //        AttachedMedia = report.Medias.Select(m => new MediaResponseDto
+        //        {
+        //            FileURL = m.FilePath,
+        //            MediaType = m.Type.ToString()
+        //        }).ToList()
+        //    };
+        //    return result;
 
 
-        }
+        //}
         
 
         public async Task<bool> UpdateReportStatusAsync(int reportId, ReportStatus newState) {

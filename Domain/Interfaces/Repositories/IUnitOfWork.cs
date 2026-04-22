@@ -25,6 +25,7 @@ namespace Domain.Interfaces.Repositories
         public IGenericRepository<ReportType> ReportTypeRepo { get;}
         public IGenericRepository<Role> RoleRepo { get;}
         public IGenericRepository<Team> TeamRepo { get;}
+        public IGenericRepository<ReportAnalysis> ReportAnalysisRepo { get;}
 
 
     }
