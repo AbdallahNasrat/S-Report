@@ -12,9 +12,9 @@ namespace Application.DTOs.ReportDTOs
         public string Description { get; set; }
         public decimal Latitude { get; set; }
         public decimal Longitude { get; set; }     
-        public int ReportTypeId { get; set; }
-        public List<IFormFile> ImageFiles { get; set; }
-        public IFormFile VoiceFile { get; set; }
+        public string? ReportType { get; set; }
+        public List<IFormFile>? ImageFiles { get; set; }
+        public IFormFile? VoiceFile { get; set; }
         public int CityId { get; set; }
 
     }

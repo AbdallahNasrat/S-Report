@@ -2,6 +2,7 @@
 using Application.Services.AiServices;
 using Domain.Interfaces.Repositories;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
@@ -10,96 +11,125 @@ public class AIService : IAIService
     private readonly HttpClient _httpClient;
     private readonly IUnitOfWork _uow;
     private readonly IWebHostEnvironment _env; // محتاجين ده عشان نجيب المسار الكامل للملف
+    private readonly IServiceScopeFactory _scopeFactory;
 
-    public AIService(HttpClient httpClient, IUnitOfWork uow, IWebHostEnvironment env)
+    public AIService(HttpClient httpClient, IUnitOfWork uow, IWebHostEnvironment env, IServiceScopeFactory scopeFactory)
     {
         _httpClient = httpClient;
         _uow = uow;
         _env = env;
+        _scopeFactory = scopeFactory;
     }
 
     public async Task AnalyzeByImageAsync(int reportId, List<string> relativePaths)
     {
-        try
+        using (var scope = _scopeFactory.CreateScope())
         {
-            using var content = new MultipartFormDataContent();
-            content.Add(new StringContent(reportId.ToString()), "report_id");
-
-            foreach (var path in relativePaths)
+            var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+            try
             {
-                // تحويل المسار النسبي لمسار حقيقي على الهارد ديسك
-                var physicalPath = Path.Combine(_env.WebRootPath, path.TrimStart('/'));
+                // Hugging Face Spaces أحياناً بتحتاج وقت عشان تقوم (Wake up)
+                using var content = new MultipartFormDataContent();
+
+                // السيرفر مستني الصورة في خانة اسم "files"
+                // لو الموديل بياخد صورة واحدة، هناخد أول مسار في اللستة
+                var firstImagePath = relativePaths.FirstOrDefault();
+                if (string.IsNullOrEmpty(firstImagePath)) return;
+
+                var physicalPath = Path.Combine(_env.WebRootPath, firstImagePath.TrimStart('/'));
 
                 if (File.Exists(physicalPath))
                 {
-                    var fileStream = new FileStream(physicalPath, FileMode.Open, FileAccess.Read);
-                    var fileContent = new StreamContent(fileStream);
+                    var fileBytes = await File.ReadAllBytesAsync(physicalPath);
+                    var fileContent = new ByteArrayContent(fileBytes);
+                    fileContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
 
-                    // تحديد نوع الملف (Image/png أو jpeg)
-                    fileContent.Headers.ContentType = new MediaTypeHeaderValue("image/" + Path.GetExtension(physicalPath).Replace(".", ""));
+                    // الكي هنا لازم يكون "files" زي ما الموديل محدد
+                    content.Add(fileContent, "files", Path.GetFileName(physicalPath));
 
-                    content.Add(fileContent, "images", Path.GetFileName(physicalPath));
+                    // نداء الـ Endpoint المسمى /predict
+                    var response = await _httpClient.PostAsync("/predict", content);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var result = await response.Content.ReadFromJsonAsync<AIResponseDto>();
+                        await SaveAnalysisResult(reportId, result, unitOfWork);
+                    }
+                    else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                    {
+                        Console.WriteLine("Error: Token is invalid or expired.");
+                    }
                 }
             }
-
-            var response = await _httpClient.PostAsync("http://ai-server/analyze-image", content);
-            if (response.IsSuccessStatusCode)
+            catch (Exception ex)
             {
-                var result = await response.Content.ReadFromJsonAsync<AiDTO>();
-                await SaveAnalysisResult(reportId, result);
+                Console.WriteLine($"AI Prediction Failed: {ex.Message}");
             }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Image AI Upload Failed: {ex.Message}");
         }
     }
 
     public async Task AnalyzeByTextAndVoiceAsync(int reportId, string description, string? voiceRelativePath)
     {
-        try
+        using (var scope = _scopeFactory.CreateScope())
         {
-            using var content = new MultipartFormDataContent();
-            content.Add(new StringContent(reportId.ToString()), "report_id");
-            content.Add(new StringContent(description), "description");
+            var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
-            if (!string.IsNullOrEmpty(voiceRelativePath))
+            try
             {
-                var physicalPath = Path.Combine(_env.WebRootPath, voiceRelativePath.TrimStart('/'));
-                if (File.Exists(physicalPath))
-                {
-                    var fileStream = new FileStream(physicalPath, FileMode.Open, FileAccess.Read);
-                    var fileContent = new StreamContent(fileStream);
-                    fileContent.Headers.ContentType = new MediaTypeHeaderValue("audio/mpeg"); // أو حسب الامتداد
+                using var content = new MultipartFormDataContent();
+                content.Add(new StringContent(reportId.ToString()), "report_id");
+                content.Add(new StringContent(description), "description");
 
-                    content.Add(fileContent, "voice", Path.GetFileName(physicalPath));
+                if (!string.IsNullOrEmpty(voiceRelativePath))
+                {
+                    var physicalPath = Path.Combine(_env.WebRootPath, voiceRelativePath.TrimStart('/'));
+                    if (File.Exists(physicalPath))
+                    {
+                        var fileStream = new FileStream(physicalPath, FileMode.Open, FileAccess.Read);
+                        var fileContent = new StreamContent(fileStream);
+                        fileContent.Headers.ContentType = new MediaTypeHeaderValue("audio/mpeg"); // أو حسب الامتداد
+
+                        content.Add(fileContent, "voice", Path.GetFileName(physicalPath));
+                    }
+                }
+
+                var response = await _httpClient.PostAsync("/predict", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<AIResponseDto>();
+                    await SaveAnalysisResult(reportId, result, unitOfWork);
                 }
             }
-
-            var response = await _httpClient.PostAsync("http://ai-server/analyze-text-voice", content);
-            if (response.IsSuccessStatusCode)
+            catch (Exception ex)
             {
-                var result = await response.Content.ReadFromJsonAsync<AiDTO>();
-                await SaveAnalysisResult(reportId, result);
+                Console.WriteLine($"Voice AI Upload Failed: {ex.Message}");
             }
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Voice AI Upload Failed: {ex.Message}");
-        }
-    }
+    }   
 
-    private async Task SaveAnalysisResult(int reportId, AiDTO result)
+    private async Task SaveAnalysisResult(int reportId, AIResponseDto response , IUnitOfWork unitOfWork)
     {
-        var analysis = new ReportAnalysis
-        {
-            ReportId = reportId,
-            ReportType = result.Type,
-            ReportPriority = result.Priority,
-            ConfidenceScore = result.ConfidenceScore,
+        // بناخد أول نتيجة من اللي راجعين
+        var aiResult = response.BatchResults.FirstOrDefault();
 
-        };
-        await _uow.ReportAnalysisRepo.AddAsync(analysis);
-        await _uow.SaveChangesAsync();
+        if (aiResult != null)
+        {
+            // تجميع الوحدات في نص واحد (مثال: Police_Units: 1)
+            var unitsText = string.Join(", ", aiResult.Recommendation.Units.Select(u => $"{u.Key}: {u.Value}"));
+
+            var analysis = new ReportAnalysis
+            {
+                ReportId = reportId,
+                ReportType = aiResult.Type, // TRAFFIC_ACCIDENT
+                ReportPriority = aiResult.Priority, // Medium
+
+                Recomendations = $"plan: {aiResult.Recommendation.ActionPlan}. UnitsRequired: {unitsText}",
+
+                ConfidenceScore = 1.0, // قيمة افتراضية
+            };  
+
+            await unitOfWork.ReportAnalysisRepo.AddAsync(analysis);
+            await unitOfWork.SaveChangesAsync();
+        }
     }
 }

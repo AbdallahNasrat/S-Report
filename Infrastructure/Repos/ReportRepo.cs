@@ -22,6 +22,7 @@ namespace Infrastructure.Repos
                 .Include(r => r.Medias)
                 .Include(r => r.City)
                 .Include(r => r.Team)
+                .Include(r => r.ReportAnalysis)
                 .AsNoTracking();
         }
         public ReportRepo(Context context) : base(context)
@@ -38,7 +39,7 @@ namespace Infrastructure.Repos
                 query = query.Where(r => r.State != ReportStatus.Resolved);
             }
 
-            
+
             return await query
                 .OrderByDescending(r => r.Id)
                 .Skip((pageNumber - 1) * pageSize)
@@ -53,6 +54,7 @@ namespace Infrastructure.Repos
                 .Include(r => r.User)
                 .Include(r => r.Team)
                 .Include(r => r.City)
+                .Include(r => r.ReportAnalysis)
                 .Include(r => r.Medias).AsNoTracking().FirstOrDefaultAsync(r => r.Id==id);
             return report;
         }

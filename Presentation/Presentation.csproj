@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>704e24a0-315b-4988-a82c-c3d3f1a28284</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,6 +28,10 @@
     <Content Update="firebase-config.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\" />
   </ItemGroup>
 
 </Project>

@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 
 namespace Infrastructure.Configuration
 {
-    public class ReportTypeConfiguration : IEntityTypeConfiguration<ReportType>
-    {
-        public void Configure(EntityTypeBuilder<ReportType> builder)
-        {
-            builder.Property(x => x.Name).HasMaxLength(100);
-        }
-    }
+    //public class ReportTypeConfiguration : IEntityTypeConfiguration<ReportType>
+    //{
+    //    public void Configure(EntityTypeBuilder<ReportType> builder)
+    //    {
+    //        //builder.Property(x => x.Name).HasMaxLength(100);
+    //    }
+    //}
 }

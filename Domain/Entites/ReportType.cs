@@ -9,11 +9,11 @@ namespace Domain.Entites
 {
     public class ReportType
     {
-        public int Id { get; set; }
-        [MaxLength(100)]
-        public string Name { get; set; }
+      //  public int Id { get; set; }
+        //[MaxLength(100)]
+       // public string Name { get; set; }
         //Relationships
-        public ICollection<Report> Reports { get; set; } = new HashSet<Report>();
+        //public ICollection<Report> Reports { get; set; } = new HashSet<Report>();
 
     }
 }

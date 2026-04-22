@@ -10,6 +10,7 @@ using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Net.Http.Headers;
 
 
 namespace Infrastructure
@@ -29,11 +30,17 @@ namespace Infrastructure
             services.AddScoped<IJwtProvider, JwtProvider>();
             services.Configure<JwtOptions>(configuration.GetSection("JwtSettings"));
             services.AddScoped<INotificationService, FirebaseNotificationService>();
+
+            var aiSettings = configuration.GetSection("AIServer");
             services.AddHttpClient<IAIService, AIService>(client =>
             {
+                client.BaseAddress = new Uri(aiSettings["Url"]);
+                // إضافة التوكن في الـ Header بشكل دائم للـ Client ده
+                client.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", aiSettings["Token"]);
+
                 client.Timeout = TimeSpan.FromMinutes(3);
             });
-            services.AddScoped<IAIService, AIService>();
 
             return services;
 
