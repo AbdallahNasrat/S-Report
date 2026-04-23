@@ -14,15 +14,15 @@ namespace Application.DTOs.ReportDTOs
         public DateTime Date { get; set; }
         public decimal Latitude { get; set; }
         public decimal Longitude { get; set; }
-        public string Priority { get; set; }
-        public string ReportType { get; set; }
-        public string ReportState { get; set; }
+        public string? Priority { get; set; }
+        public string? ReportType { get; set; }
+        public ReportStatus ReportState { get; set; }
         public bool? IsValid { get; set; }
         public string? Recommendations { get; set; }
         public double? ConfidenceScore { get; set; }
         public string ReporterName { get; set; }
         public int ReporterId { get; set; }
-        public string City { get; set; }
+        public int CityId { get; set; }
         public string TeamName { get; set; }
         public List<MediaResponseDto> AttachedMedia { get; set; }
 

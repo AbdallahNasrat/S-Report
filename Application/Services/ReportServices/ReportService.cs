@@ -138,16 +138,16 @@ namespace Application.Services.ReportServices
                 Date = report.Date,
                 Latitude = report.Latitude,
                 Longitude = report.Longitude,
-                Priority = report.ReportAnalysis.ReportPriority,
+                Priority = report.ReportAnalysis?.ReportPriority,
                 Description = report.Description,
-                ReportState = report.State.ToString(),
+                ReportState = report.State,
                 IsValid = report.IsValid,
-                ReportType = report.ReportAnalysis.ReportType,
-                Recommendations = report.ReportAnalysis.Recomendations,
-                ConfidenceScore= report.ReportAnalysis.ConfidenceScore,
+                ReportType = report.ReportAnalysis?.ReportType,
+                Recommendations = report.ReportAnalysis?.Recomendations,
+                ConfidenceScore= report.ReportAnalysis?.ConfidenceScore,
                 ReporterName = $"{report.User.FName} {report.User.SName}",
                 ReporterId = report.User.Id,
-                City = report.City.Name,
+                CityId = report.CityId,
                 TeamName = report.Team?.Name ?? "No Team",
                 AttachedMedia = report.Medias.Select(m => new MediaResponseDto
                 {
@@ -169,7 +169,7 @@ namespace Application.Services.ReportServices
                 Date = r.Date,
                 Latitude = r.Latitude,
                 Longitude = r.Longitude,
-                State = r.State.ToString(),
+                State = r.State,
                 AttachedMedia = r.Medias.Select(m => new MediaResponseDto()
                 {
                     FileURL = m.FilePath,
@@ -192,16 +192,16 @@ namespace Application.Services.ReportServices
                 Date = report.Date,
                 Latitude = report.Latitude,
                 Longitude = report.Longitude,
-                Priority = report.ReportAnalysis.ReportPriority,
+                Priority = report.ReportAnalysis?.ReportPriority,
                 Description = report.Description,
-                ReportState = report.State.ToString(),
+                ReportState = report.State,
                 IsValid = report.IsValid,
-                ReportType = report.ReportAnalysis.ReportType,
-                Recommendations = report.ReportAnalysis.Recomendations,
-                ConfidenceScore = report.ReportAnalysis.ConfidenceScore,
+                ReportType = report.ReportAnalysis?.ReportType,
+                Recommendations = report.ReportAnalysis?.Recomendations,
+                ConfidenceScore = report.ReportAnalysis?.ConfidenceScore,
                 ReporterName = $"{report.User.FName} {report.User.SName}",
                 ReporterId = report.User.Id,
-                City = report.City.Name,
+                CityId = report.CityId,
                 TeamName = report.Team?.Name ?? "No Team",
                 AttachedMedia = report.Medias.Select(m => new MediaResponseDto
                 {
@@ -213,6 +213,29 @@ namespace Application.Services.ReportServices
 
 
         }
+        public async Task<ReportSummaryDto> GetReportSummaryByIdAsync(int reportId,bool tracked) {
+            var report = await _uow.ReportsRepo.GetByIdAsync(reportId, tracked);
+            if (report == null) {
+                return null;
+            }
+            var result = new ReportSummaryDto() {
+                ReportId = reportId,
+                UserId = report.UserId,
+                Latitude = report.Latitude,
+                Longitude = report.Longitude,
+                Date = report.Date,
+                Description = report.Description,
+                ReportType = report.Type,
+                State = report.State,
+                AttachedMedia = report.Medias.Select(m => new MediaResponseDto
+                {
+                    FileURL = m.FilePath,
+                    MediaType = m.Type.ToString()
+                }).ToList()
+            };
+            return result;
+        }
+
 
 
         public async Task<bool> UpdateReportStatusAsync(int reportId, ReportStatus newState) {

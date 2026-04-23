@@ -14,17 +14,13 @@ namespace Application.Services.ReportServices
         public Task<bool> AddReportAsync(int userId, CreateReportDTO dto);
         public Task<bool> DeleteReportAsync(int reportId);
         public Task<bool> UpdateReportStatusAsync(int reportId, ReportStatus status);
-        //public Task<IEnumerable<ReportSummaryDto>> GetMyReportsAsync(int userId, int pageNumber, int pageSize);
-        //public Task<IEnumerable<ReportDetailsDto>> GetFilteredReportsAsync(int cityId, int pageNumber, int pageSize, bool excludeResolved);
-        //public Task<ReportDetailsDto> GetReportByIdAsync(int reportId);
+        public Task<IEnumerable<ReportSummaryDto>> GetMyReportsAsync(int userId, int pageNumber, int pageSize);
+        public Task<ReportDetailsDto> GetReportByIdAsync(int reportId);
+        public Task<ReportSummaryDto> GetReportSummaryByIdAsync(int reportId, bool tracked);
         public Task<bool> AddAILayer(Report report);
         public Task<bool> CancelReportAsync(int reportId);
         public Task<bool> AssignTeamToReportAsync(int reportId, int teamId);
         public Task<bool> ValidateReportAsync(int reportId, bool isValid);
-
-
-
-
-
+        public Task<IEnumerable<ReportDetailsDto>> GetFilteredReportsAsync(int cityId, int pageNumber, int pageSize, bool excludeResolved);
     }
 }

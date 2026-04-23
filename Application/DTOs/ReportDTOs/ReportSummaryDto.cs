@@ -10,11 +10,12 @@ namespace Application.DTOs.ReportDTOs
     public class ReportSummaryDto
     {
         public int ReportId { get; set; }
+        public int UserId { get; set; }
         public string Description { get; set; }
         public DateTime Date { get; set; }
         public decimal Latitude { get; set; }
         public decimal Longitude { get; set; }
-        public string State { get; set; }
+        public ReportStatus State { get; set; }
         public string ReportType { get; set; }
         public List<MediaResponseDto> AttachedMedia { get; set; }
 

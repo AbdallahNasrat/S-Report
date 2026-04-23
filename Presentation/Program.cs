@@ -66,9 +66,9 @@ namespace Presentation
                 {
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ValidateIssuer = true,
+                        ValidateIssuer = false,
                         ValidIssuer = jwtOptions.Issuer,
-                        ValidateAudience = true,
+                        ValidateAudience = false,
                         ValidAudience = jwtOptions.Audience,
                         ValidateIssuerSigningKey = true,
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key)),
@@ -81,6 +81,18 @@ namespace Presentation
                 Credential = GoogleCredential.FromFile("firebase-config.json")
             });
 
+
+            builder.Services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(policy =>
+                {
+                    policy.AllowAnyOrigin()
+                     .AllowAnyHeader()
+                     .AllowAnyMethod();
+                });
+
+            });
+            
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -89,12 +101,13 @@ namespace Presentation
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-
+            app.UseStaticFiles();
             app.UseHttpsRedirection();
+
+            app.UseCors();
 
             app.UseAuthentication();
             app.UseAuthorization();
-
 
             app.MapControllers();
 
