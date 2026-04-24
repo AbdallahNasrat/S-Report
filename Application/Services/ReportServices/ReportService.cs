@@ -122,6 +122,33 @@ namespace Application.Services.ReportServices
 
             return true;
         }
+        public async Task<SyncResultDto> SyncOfflineReports(int userId, IEnumerable<CreateReportDTO> reports)
+        {
+            var result = new SyncResultDto(); 
+
+            foreach (var reportDto in reports)
+            {
+                try
+                {
+                    
+                    var newReport = await AddReportAsync(userId, reportDto);
+
+                    result.SuccessCount++;
+                }
+                catch (Exception ex)
+                {
+                
+                    result.FailedReports.Add(new FailedReportInfo
+                    {
+                        Description = reportDto.Description,
+                        Error = ex.Message
+                    });
+                    result.FailureCount++;
+                }
+            }
+
+            return result;
+        }
 
         public async Task<bool> DeleteReportAsync(int reportId)
         {
@@ -250,7 +277,7 @@ namespace Application.Services.ReportServices
             }
             if (report.State == newState) return true;
 
-            if (report.State == ReportStatus.Resolved && newState != ReportStatus.Resolved)
+            if (report.State == ReportStatus.Resolved && newState!= ReportStatus.Resolved || report.State ==ReportStatus.Closed )
             {
                 throw new Exception("Sorry, the status of a report that has already been resolved cannot be changed.");
             }
@@ -262,11 +289,13 @@ namespace Application.Services.ReportServices
             if (report == null) {
                 throw new NotFoundException("Report Not Found");
             }
-            report.State = ReportStatus.Closed;
+            if(report.State!= ReportStatus.Closed && report.State != ReportStatus.InProgress && report.State != ReportStatus.Resolved)
+                report.State = ReportStatus.Closed;
             return await _uow.SaveChangesAsync()>0;
 
 
         }
+
 
         public async Task<bool> AssignTeamToReportAsync(int reportId, int teamId)
         {

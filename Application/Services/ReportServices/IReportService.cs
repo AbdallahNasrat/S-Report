@@ -12,6 +12,8 @@ namespace Application.Services.ReportServices
     public  interface IReportService
     {
         public Task<bool> AddReportAsync(int userId, CreateReportDTO dto);
+        public Task<SyncResultDto> SyncOfflineReports(int userId,IEnumerable<CreateReportDTO> reports);
+
         public Task<bool> DeleteReportAsync(int reportId);
         public Task<bool> UpdateReportStatusAsync(int reportId, ReportStatus status);
         public Task<IEnumerable<ReportSummaryDto>> GetMyReportsAsync(int userId, int pageNumber, int pageSize);

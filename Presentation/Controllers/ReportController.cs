@@ -19,7 +19,7 @@ namespace Presentation.Controllers
             _reportService = reportService;
         }
         [HttpPost]
-        public async Task<IActionResult> AddReportAsync([FromForm]CreateReportDTO dto)
+        public async Task<IActionResult> AddReportAsync([FromForm] CreateReportDTO dto)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null)
@@ -27,19 +27,19 @@ namespace Presentation.Controllers
             int userId = int.Parse(userIdClaim.Value);
 
             var result = await _reportService.AddReportAsync(userId, dto);
-            if(!result)
+            if (!result)
                 return BadRequest("The report has not been added");
             return Ok("The report has  been added successfully");
         }
 
-        [Authorize(Roles ="Admin,Employee")]
+        [Authorize(Roles = "Admin,Employee")]
         [HttpGet("CityReports")]
-        public async Task<ActionResult<IEnumerable<ReportDetailsDto>>> CityReports([FromQuery]int page , [FromQuery] int size , [FromQuery] bool excludeResolved = true) {
+        public async Task<ActionResult<IEnumerable<ReportDetailsDto>>> CityReports([FromQuery] int page, [FromQuery] int size, [FromQuery] bool excludeResolved = true) {
             var cityIdClaim = User.FindFirstValue("cityId");
 
             if (string.IsNullOrEmpty(cityIdClaim) || !int.TryParse(cityIdClaim, out int cityId))
             {
-                
+
                 return Forbid("This account is not linked to a specific city.");
             }
             if (page <= 0) page = 1;
@@ -48,9 +48,9 @@ namespace Presentation.Controllers
             var reports = await _reportService.GetFilteredReportsAsync(cityId, page, size, excludeResolved);
             return Ok(reports);
         }
-        [Authorize(Roles ="User")]
+        [Authorize(Roles = "User")]
         [HttpGet("MyReports")]
-        public async Task<ActionResult<IEnumerable<ReportSummaryDto>>> MyReports([FromQuery] int pageNumber,int pageSize) {
+        public async Task<ActionResult<IEnumerable<ReportSummaryDto>>> MyReports([FromQuery] int pageNumber, int pageSize) {
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId)) {
                 return Forbid("This account is not linked to a app.");
@@ -60,8 +60,8 @@ namespace Presentation.Controllers
             var reports = await _reportService.GetMyReportsAsync(userId, pageNumber, pageSize);
             return Ok(reports);
         }
-        [Authorize(Roles ="Admin,Employee")]
-        [HttpGet("ReportDetails{id}")]
+        [Authorize(Roles = "Admin,Employee")]
+        [HttpGet("ReportDetails/{id}")]
         public async Task<ActionResult<ReportDetailsDto>> ReportDetails(int id) {
 
             var userRole = User.FindFirstValue(ClaimTypes.Role);
@@ -79,12 +79,12 @@ namespace Presentation.Controllers
             }
             return Ok(report);
         }
-        [HttpGet("ReportSummary{id}")]
+        [HttpGet("ReportSummary/{id}")]
         public async Task<ActionResult<ReportDetailsDto>> ReportSummary(int id) {
 
             var userClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var report = await _reportService.GetReportSummaryByIdAsync(id, false);
-            if(report == null) {
+            if (report == null) {
                 return NotFound("The Report Does Not Exist");
             }
             if (!int.TryParse(userClaim, out int userId) && report.UserId != userId) {
@@ -93,8 +93,43 @@ namespace Presentation.Controllers
             return Ok(report);
         }
 
+        [Authorize(Roles = "Employee")]
+        [HttpPatch("{reportId}/status")]
+        public async Task<IActionResult> UpdateReportState([FromRoute] int reportId, [FromBody] UpdateReportStatusDto dto) {
+            if (dto == null || reportId == 0) {
+                return NotFound("The report is not found or the report status has not changed.");
+            }
+            var result = await _reportService.UpdateReportStatusAsync(reportId, dto.Status);
+            if (!result) {
+                return NotFound("the report status has not changed");
+            }
+            return Ok("the report status has been changed");
 
+        }
+        [HttpPut("{id}/cancel")]
+        public async Task<IActionResult> CancelReport([FromRoute] int id) {
+            if (id <= 0)
+                return BadRequest("Enter Valid Number");
+            var result = await _reportService.CancelReportAsync(id);
+            if (!result) { return BadRequest("The report has not been cancelled."); }
+            return Ok("The report has been cancelled.");
+        }
 
-      
+        [HttpPost("SynOfflineReports")]
+        public async Task<ActionResult<SyncResultDto>> SyncOfflineReports([FromBody] IEnumerable<CreateReportDTO> dto) {
+            if (dto == null || !dto.Any()) { return BadRequest("the Reports list is empty"); }
+            var user = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (user == null || !int.TryParse(user.Value,out int userId)){ return  Unauthorized("User identification failed"); }
+            var result = await _reportService.SyncOfflineReports(userId, dto);
+            return  Ok(result);
+        }
+               
     }
+
+
+
+
+
+
 }
+
