@@ -1,4 +1,5 @@
 ﻿using Application.DTOs.ReportDTOs;
+using Application.DTOs.TeamsDTOs;
 using Application.Services.ReportServices;
 using Domain.Entites;
 using Microsoft.AspNetCore.Authorization;
@@ -119,17 +120,28 @@ namespace Presentation.Controllers
         public async Task<ActionResult<SyncResultDto>> SyncOfflineReports([FromBody] IEnumerable<CreateReportDTO> dto) {
             if (dto == null || !dto.Any()) { return BadRequest("the Reports list is empty"); }
             var user = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (user == null || !int.TryParse(user.Value,out int userId)){ return  Unauthorized("User identification failed"); }
+            if (user == null || !int.TryParse(user.Value, out int userId)) { return Unauthorized("User identification failed"); }
             var result = await _reportService.SyncOfflineReports(userId, dto);
-            return  Ok(result);
+            return Ok(result);
         }
-               
+
+
+        [Authorize(Roles ="Employee")]
+        [HttpPatch("{reportId}/Team")]
+        public async Task<IActionResult> AssignTeam(int reportId, [FromBody] AssignTeamDto dto){
+            if (dto == null )
+                return BadRequest("Enter Valid TeamId");
+            var result = await _reportService.AssignTeamToReportAsync(reportId, dto.TeamId);
+            if (!result) { return BadRequest("The team was not assigned to the report."); }
+            return Ok("The team received the report");
+        }
+
+
+
+
+
+
+
     }
-
-
-
-
-
-
 }
 

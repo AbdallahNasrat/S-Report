@@ -305,11 +305,11 @@ namespace Application.Services.ReportServices
 
             if (report == null)
             {
-                throw new NotFoundException(" the report is does exist");
+                throw new NotFoundException(" the report is does not exist");
             }
             if (team == null)
             {
-                throw new NotFoundException(" the team is does exist");
+                throw new NotFoundException(" the team is does not exist");
             }
             report.TeamId = teamId;
             report.State = ReportStatus.InProgress;
