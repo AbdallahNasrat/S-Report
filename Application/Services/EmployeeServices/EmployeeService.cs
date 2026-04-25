@@ -63,9 +63,9 @@ namespace Application.Services.EmployeeServices
             return await _uow.SaveChangesAsync() > 0 ;
         }
 
-        public async Task<IEnumerable<EmployeeDTO>> GetAllEmployeesAsync()
+        public async Task<IEnumerable<EmployeeDTO>> GetAllEmployeesAsync(int? cityId = null)
         {
-            var employees = await _uow.EmployeesRepo.GetAllEmployeesAsync();
+            var employees = await _uow.EmployeesRepo.GetAllEmployeesAsync(cityId);
             if (employees == null) return null;
             return employees.Select(emp => MapToDTO(emp));
         }

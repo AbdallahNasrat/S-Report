@@ -29,10 +29,12 @@ namespace Infrastructure.Repos
         {           
         }
 
-        public async Task<IEnumerable<Report>> GetFilteredReportsAsync(int cityId, int pageNumber, int pageSize, bool excludeResolved)
+        public async Task<IEnumerable<Report>> GetFilteredReportsAsync( int pageNumber, int pageSize, bool excludeResolved, int? cityId = null)
         {
-            IQueryable<Report> query = GetReportsQuery()
-                .Where(r => r.CityId == cityId);
+            IQueryable<Report> query = GetReportsQuery();
+            if (cityId.HasValue) {
+                query = query.Where(r => r.CityId == cityId);
+            }     
 
             if (excludeResolved)
             {
@@ -48,15 +50,24 @@ namespace Infrastructure.Repos
                 .ToListAsync();
         }
 
-        public async Task<Report?> GetReportWithDetailsAsync(int id)
+        public async Task<Report?> GetReportWithDetailsAsync(int id, bool tracked = true)
         {
-            var report = await _context.Reports
+            
+            var query = _context.Reports
                 .Include(r => r.User)
                 .Include(r => r.Team)
                 .Include(r => r.City)
                 .Include(r => r.ReportAnalysis)
-                .Include(r => r.Medias).AsNoTracking().FirstOrDefaultAsync(r => r.Id==id);
-            return report;
+                .Include(r => r.Medias)
+                .AsQueryable(); // نجهزه كـ Query
+
+            
+            if (!tracked)
+            {
+                query = query.AsNoTracking();
+            }
+
+            return await query.FirstOrDefaultAsync(r => r.Id == id);
         }
         public async Task<IEnumerable<Report>> GetReportsByUserIdAsync(int userId, int pageNumber, int pageSize) {
             var reports = GetReportsQuery()

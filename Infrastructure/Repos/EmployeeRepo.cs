@@ -18,12 +18,16 @@ namespace Infrastructure.Repos
 
         }
 
-        public async Task<IEnumerable<Employee>> GetAllEmployeesAsync()
+        public async Task<IEnumerable<Employee>> GetAllEmployeesAsync(int? cityId = null)
         {
-            var employees = await _context.Employees.Include(e => e.User).AsNoTracking().ToListAsync();
-            return employees;
-        }
+            var query = _context.Employees.Include(e => e.User).AsNoTracking().AsQueryable();
+            if (cityId.HasValue)
+            {
+                query = query.Where(c => c.User.CityId == cityId);
+            }
 
+            return await query.ToListAsync();
+        }
         public async Task<Employee> GetEmployeeByIdAsync(int id)
         {
             var employee = await _context.Employees.Include(e => e.User).FirstOrDefaultAsync(e => e.Id == id);

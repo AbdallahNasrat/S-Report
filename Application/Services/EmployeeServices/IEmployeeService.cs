@@ -12,7 +12,7 @@ namespace Application.Services.EmployeeServices
     {
         public Task<bool> EditEmployeeDataAsync(EmployeeDTO dto);
         public Task<EmployeeDTO> GetEmployeeAsync(int id);
-        public Task<IEnumerable<EmployeeDTO>> GetAllEmployeesAsync();
+        public Task<IEnumerable<EmployeeDTO>> GetAllEmployeesAsync(int? cityId = null);
         public Task<bool> RegisterEmployeeAsync(RegisterEmployeeDto dto, int role);
 
 

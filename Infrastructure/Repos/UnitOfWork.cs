@@ -7,7 +7,8 @@ namespace Infrastructure.Repos
     public class UnitOfWork : IUnitOfWork
     {
         private readonly Context _context; 
-        private readonly IServiceProvider _serviceProvider; 
+        private readonly IServiceProvider _serviceProvider;
+        private bool _disposed = false;
 
         public UnitOfWork(Context context, IServiceProvider serviceProvider)
         {
@@ -26,6 +27,7 @@ namespace Infrastructure.Repos
         public IGenericRepository<ReportType> ReportTypeRepo => _serviceProvider.GetRequiredService<IGenericRepository<ReportType>>();
         public IGenericRepository<Role> RoleRepo => _serviceProvider.GetRequiredService<IGenericRepository<Role>>();
         public IGenericRepository<Team> TeamRepo => _serviceProvider.GetRequiredService<IGenericRepository<Team>>();
+        public IGenericRepository<ReportCategory> ReportCategoryRepo => _serviceProvider.GetRequiredService<IGenericRepository<ReportCategory>>();
 
         
         public IGenericRepository<ReportAnalysis> ReportAnalysisRepo => _serviceProvider.GetRequiredService<IGenericRepository<ReportAnalysis>>();
@@ -37,7 +39,21 @@ namespace Infrastructure.Repos
 
         public void Dispose()
         {
-            _context.Dispose();
+            Dispose(true);            
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    // تنظيف الـ Managed Resources (مثل الـ DbContext)
+                    _context.Dispose();
+                }
+                _disposed = true;
+            }
         }
     }
 }

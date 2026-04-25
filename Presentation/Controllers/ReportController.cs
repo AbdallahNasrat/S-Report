@@ -1,4 +1,5 @@
-﻿using Application.DTOs.ReportDTOs;
+﻿using Application.DTOs.LookupDtos;
+using Application.DTOs.ReportDTOs;
 using Application.DTOs.TeamsDTOs;
 using Application.Services.ReportServices;
 using Domain.Entites;
@@ -33,6 +34,14 @@ namespace Presentation.Controllers
             return Ok("The report has  been added successfully");
         }
 
+        [Authorize(Roles="Admin")]
+        [HttpGet("All")]
+        public async Task<ActionResult<IEnumerable<ReportDetailsDto>>> AllReports([FromQuery] int page, [FromQuery] int size, [FromQuery] bool excludeResolved = true) {
+            var reports = await _reportService.GetFilteredReportsAsync(pageNumber: page, pageSize: size, excludeResolved: excludeResolved);
+            if (reports == null || !reports.Any()) { return NotFound("No Reports"); }
+            return Ok(reports);
+        }
+
         [Authorize(Roles = "Admin,Employee")]
         [HttpGet("CityReports")]
         public async Task<ActionResult<IEnumerable<ReportDetailsDto>>> CityReports([FromQuery] int page, [FromQuery] int size, [FromQuery] bool excludeResolved = true) {
@@ -46,7 +55,7 @@ namespace Presentation.Controllers
             if (page <= 0) page = 1;
             if (size <= 0 || size > 50) size = 10;
 
-            var reports = await _reportService.GetFilteredReportsAsync(cityId, page, size, excludeResolved);
+            var reports = await _reportService.GetFilteredReportsAsync( page, size, excludeResolved, cityId);
             return Ok(reports);
         }
         [Authorize(Roles = "User")]
@@ -135,6 +144,24 @@ namespace Presentation.Controllers
             if (!result) { return BadRequest("The team was not assigned to the report."); }
             return Ok("The team received the report");
         }
+        [Authorize(Roles ="Employee,Admin")]
+        [HttpPatch("{reportId}/Type")]
+        public async Task<IActionResult> CorrectReportType(int reportId, [FromBody] ReportTypeDto dto) {
+            var result = await _reportService.CorrectReportTypeAsync(reportId, dto.categoryId);
+            if (!result) {
+                return BadRequest("The report type has not changed.");
+            }       
+            return Ok("The report type has been changed.");
+        }
+        [Authorize(Roles =("Admin,Employee"))]
+        [HttpGet("Categories")]
+        public async Task<ActionResult<IEnumerable<LookupDto>>> Categories() {
+            var categories = await _reportService.GetCategories();
+            if (categories == null || !categories.Any()) {
+                return NotFound("No Categories"); }
+            return Ok(categories);
+            }
+        }
 
 
 
@@ -143,5 +170,5 @@ namespace Presentation.Controllers
 
 
     }
-}
+
 

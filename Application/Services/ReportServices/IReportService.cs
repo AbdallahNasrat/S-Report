@@ -1,4 +1,5 @@
-﻿using Application.DTOs.ReportDTOs;
+﻿using Application.DTOs.LookupDtos;
+using Application.DTOs.ReportDTOs;
 using Domain.Entites;
 using Domain.Enums;
 using System;
@@ -17,12 +18,14 @@ namespace Application.Services.ReportServices
         public Task<bool> DeleteReportAsync(int reportId);
         public Task<bool> UpdateReportStatusAsync(int reportId, ReportStatus status);
         public Task<IEnumerable<ReportSummaryDto>> GetMyReportsAsync(int userId, int pageNumber, int pageSize);
-        public Task<ReportDetailsDto> GetReportByIdAsync(int reportId);
+        public Task<ReportDetailsDto> GetReportByIdAsync(int reportId, bool tracked = true);
         public Task<ReportSummaryDto> GetReportSummaryByIdAsync(int reportId, bool tracked);
         public Task<bool> AddAILayer(Report report);
         public Task<bool> CancelReportAsync(int reportId);
         public Task<bool> AssignTeamToReportAsync(int reportId, int teamId);
         public Task<bool> ValidateReportAsync(int reportId, bool isValid);
-        public Task<IEnumerable<ReportDetailsDto>> GetFilteredReportsAsync(int cityId, int pageNumber, int pageSize, bool excludeResolved);
+        public Task<IEnumerable<ReportDetailsDto>> GetFilteredReportsAsync( int pageNumber, int pageSize, bool excludeResolved, int? cityId = null);
+        public Task<bool> CorrectReportTypeAsync(int reportId , int categoryId);
+        public Task<IEnumerable<LookupDto>> GetCategories();
     }
 }

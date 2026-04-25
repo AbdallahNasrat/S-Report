@@ -23,6 +23,7 @@ namespace Infrastructure
         //public DbSet<ReportType> ReportTypes { get; set; }
         public DbSet<Team> Teams { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<ReportCategory> ReportCategories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) {
             base.OnModelCreating(modelBuilder);

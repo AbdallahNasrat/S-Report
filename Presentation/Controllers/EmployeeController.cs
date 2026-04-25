@@ -18,9 +18,17 @@ namespace Presentation.Controllers
             _employeeService = employeeService;
         }
 
-        [HttpGet()]
-        public async Task<ActionResult<IEnumerable<EmployeeDTO>>> GetAllEmployess() {
+        [Authorize(Roles ="Admin")]
+        [HttpGet("All")]
+        public async Task<ActionResult<IEnumerable<EmployeeDTO>>> AllEmployees() {
             var employees = await _employeeService.GetAllEmployeesAsync();
+            if (employees == null || !employees.Any()) return NotFound("There are no employees. ");
+            return Ok(employees);
+        }
+        [Authorize(Roles ="Admin,Employee")]
+        [HttpGet("{cityId}/All")]
+        public async Task<ActionResult<IEnumerable<EmployeeDTO>>> CityEmployees(int cityId) {
+            var employees = await _employeeService.GetAllEmployeesAsync(cityId);
             if (employees == null || !employees.Any()) return NotFound("There are no employees. ");
             return Ok(employees);
         }
@@ -52,5 +60,7 @@ namespace Presentation.Controllers
             return BadRequest("An error occurred");
 
         }
+
+
     }
 }

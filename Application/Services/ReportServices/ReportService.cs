@@ -13,6 +13,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Net.Mime.MediaTypeNames;
+using Application.Services.NotficationServices;
+using Application.DTOs.LookupDtos;
 
 namespace Application.Services.ReportServices
 {
@@ -21,10 +23,12 @@ namespace Application.Services.ReportServices
         private readonly IUnitOfWork _uow;
         private readonly IFileService _fileService;
         private readonly IAIService _aiService;
-        public ReportService(IUnitOfWork uow, IFileService fileService , IAIService aiService ) {
+        private readonly INotificationService _notificationService;
+        public ReportService(IUnitOfWork uow, IFileService fileService , IAIService aiService  , INotificationService NotificationService) {
             _uow = uow;
             _fileService = fileService;
             _aiService = aiService;
+            _notificationService = NotificationService;
         }
         public async Task<bool> AddAILayer(Report report)
         {
@@ -155,9 +159,9 @@ namespace Application.Services.ReportServices
             throw new NotImplementedException();
         }
 
-        public async Task<IEnumerable<ReportDetailsDto>> GetFilteredReportsAsync(int cityId, int pageNumber, int pageSize, bool excludeResolved)
+        public async Task<IEnumerable<ReportDetailsDto>> GetFilteredReportsAsync( int pageNumber, int pageSize, bool excludeResolved, int? cityId = null)
         {
-            var reports = await _uow.ReportsRepo.GetFilteredReportsAsync(cityId, pageNumber, pageSize, excludeResolved);
+            var reports = await _uow.ReportsRepo.GetFilteredReportsAsync( pageNumber, pageSize, excludeResolved, cityId);
 
             var result = reports.Select(report => new ReportDetailsDto
             {
@@ -206,9 +210,9 @@ namespace Application.Services.ReportServices
             return result;
         }
 
-        public async Task<ReportDetailsDto> GetReportByIdAsync(int reportId)
+        public async Task<ReportDetailsDto> GetReportByIdAsync(int reportId,bool tracked = true)
         {
-            var report = await _uow.ReportsRepo.GetReportWithDetailsAsync(reportId);
+            var report = await _uow.ReportsRepo.GetReportWithDetailsAsync(reportId,tracked);
             if (report == null)
             {
                 throw new NotFoundException("NotFoundException");
@@ -265,24 +269,48 @@ namespace Application.Services.ReportServices
 
 
 
-        public async Task<bool> UpdateReportStatusAsync(int reportId, ReportStatus newState) {
+        public async Task<bool> UpdateReportStatusAsync(int reportId, ReportStatus newState)
+        {
             var report = await _uow.ReportsRepo.GetByIdAsync(reportId);
-            var user = await _uow.UsersRepo.GetByIdAsync(report.UserId);
-            if (report == null) {
+            if (report == null)
+            {
                 throw new NotFoundException("Report does not found");
             }
+            var user = await _uow.UsersRepo.GetByIdAsync(report.UserId);
+
             if (user == null)
             {
                 throw new NotFoundException("user does not found");
             }
             if (report.State == newState) return true;
 
-            if (report.State == ReportStatus.Resolved && newState!= ReportStatus.Resolved || report.State ==ReportStatus.Closed )
+            if (report.State == ReportStatus.Resolved && newState != ReportStatus.Resolved || report.State == ReportStatus.Closed)
             {
                 throw new Exception("Sorry, the status of a report that has already been resolved cannot be changed.");
             }
-            report.State = newState;            
-            return await _uow.SaveChangesAsync() > 0;
+            report.State = newState;
+            var success = await _uow.SaveChangesAsync() > 0;
+
+            if (success && !string.IsNullOrEmpty(user?.FcmToken))
+            {
+                string title = "Update regarding your report";
+                string body = newState switch
+                {
+                    ReportStatus.InProgress => "We have started working on your report now.",
+                    ReportStatus.Resolved => "Your report has been successfully resolved, thank you for your cooperation!",
+                    ReportStatus.Closed => "The report has been closed..",
+                    _ => $"Your report status is now: {newState}"
+                };
+                var notificationData = new Dictionary<string, string>{                        
+                        { "reportId", report.Id.ToString() },
+                        { "click_action", "FLUTTER_NOTIFICATION_CLICK" }, // ضرورية لبعض إصدارات أندرويد
+                        { "type", "REPORT_DETAILS" }
+                    };
+
+                // نداء سيرفيس النوتفكيشن (بدون ما نعطل الـ Main Flow)
+                _ = _notificationService.SendNotificationAsync(user.FcmToken, title, body, notificationData);
+            }
+            return success;
         }
         public async Task<bool> CancelReportAsync(int reportId) {
             var report = await _uow.ReportsRepo.GetByIdAsync(reportId);
@@ -335,8 +363,45 @@ namespace Application.Services.ReportServices
 
             return await _uow.SaveChangesAsync()>0;
         }
+        public async Task<bool> CorrectReportTypeAsync(int reportId, int categoryId)
+        {
+            var category = await _uow.ReportCategoryRepo.GetByIdAsync(categoryId);
+            var report = await _uow.ReportsRepo.GetByIdAsync(reportId);
 
+            if (report == null || category == null) return false;
 
+            if (report.ReportAnalysis == null)
+            {
+                // لو البلاغ لسه ملوش تحليل (الـ AI لسه مشتغلش)، ممكن نكريت له سجل يدوي
+                report.ReportAnalysis = new ReportAnalysis
+                {
+                    ReportType = category.Name,
+                    ConfidenceScore = 1.0, // بما إن بشري هو اللي حدده، فالثقة 100%
+                    ReportPriority = "Medium" // قيمة افتراضية
+                };
+            }
+            else
+            {
+                // 3. تحديث النوع الموجود
+                report.ReportAnalysis.ReportType = category.Name;
+                // لو عندك الحقل ده، فعله عشان الإحصائيات
+                // report.ReportAnalysis.IsManualCorrection = true;
+            }
+            return await _uow.SaveChangesAsync() > 0;
+        }
 
+        public async Task<IEnumerable<LookupDto>> GetCategories()
+        {
+            var categories = await _uow.ReportCategoryRepo.GetAllAsync();
+            if (categories == null || !categories.Any()) {
+                return [];
+            }
+            var result = categories.Select(c => new LookupDto()
+            {
+                Id = c.Id,
+                Name = c.Name
+            });
+            return result;
+        }
     }
 }
