@@ -22,6 +22,7 @@ namespace Domain.Entites
         public bool Volunteer { get; set; }
         public decimal Rate { get; set; }
         public string? FcmToken { get; set; }
+        public bool IsNotificationEnabled { get; set; } = true; 
 
 
         //Relationship

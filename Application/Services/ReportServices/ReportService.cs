@@ -372,20 +372,19 @@ namespace Application.Services.ReportServices
 
             if (report.ReportAnalysis == null)
             {
-                // لو البلاغ لسه ملوش تحليل (الـ AI لسه مشتغلش)، ممكن نكريت له سجل يدوي
+                
                 report.ReportAnalysis = new ReportAnalysis
                 {
                     ReportType = category.Name,
-                    ConfidenceScore = 1.0, // بما إن بشري هو اللي حدده، فالثقة 100%
-                    ReportPriority = "Medium" // قيمة افتراضية
+                    ConfidenceScore = 1.0, 
+                    ReportPriority = "Medium" 
                 };
             }
             else
             {
-                // 3. تحديث النوع الموجود
+                
                 report.ReportAnalysis.ReportType = category.Name;
-                // لو عندك الحقل ده، فعله عشان الإحصائيات
-                // report.ReportAnalysis.IsManualCorrection = true;
+            
             }
             return await _uow.SaveChangesAsync() > 0;
         }

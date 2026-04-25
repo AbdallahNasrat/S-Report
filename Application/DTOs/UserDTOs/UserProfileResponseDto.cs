@@ -17,6 +17,7 @@ namespace Application.DTOs.UserDTOs
         public string Phone { get; set; }
         public string Gender { get; set; }
         public bool Volunteer { get; set; }
+        public bool Notification { get; set; }
         public DateTime Birthdate { get; set; }
         public decimal Rate { get; set; }
 
