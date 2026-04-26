@@ -7,9 +7,11 @@ using Domain.Interfaces.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Application.Services.UserServices
 {
@@ -41,10 +43,27 @@ namespace Application.Services.UserServices
         //    throw new NotImplementedException();
         //}
 
-        //public Task<IEnumerable<UserProfileResponseDto>> GetAllUsersAsync()
-        //{
-        //    throw new NotImplementedException();
-        //}
+        public async Task<IEnumerable<UserProfileResponseDto>> GetAllUsersAsync(int page , int size, int? cityId = null)
+        {
+            var users = await _uow.UsersRepo.GetUsers(page, size, cityId);
+            if (users == null) return null;
+            var result = users.Select(u => new UserProfileResponseDto()
+            {
+                FirstName = u.FName,
+                SecundName = u.SName,
+                Email = u.Email,
+                NationalId = u.NationalId,
+                Address = u.Address,
+                Phone = u.Phone,
+                Gender = u.Gender,
+                Volunteer = u.Volunteer,
+                Notification = u.IsNotificationEnabled,
+                Birthdate = u.Birthdate,
+                Rate = u.Rate
+
+            });
+            return result;
+        }
 
         //public Task<UserProfileResponseDto> GetUserProfileAsync(int userId)
         //{

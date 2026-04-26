@@ -10,12 +10,12 @@ namespace Application.DTOs.UserDTOs
     public class UserProfileResponseDto
     {
         public string FirstName { get; set; }
-        public string SecoundName { get; set; }
+        public string SecundName { get; set; }
         public string Email { get; set; }
         public string NationalId { get; set; }
         public string Address { get; set; }
         public string Phone { get; set; }
-        public string Gender { get; set; }
+        public Genders Gender { get; set; }
         public bool Volunteer { get; set; }
         public bool Notification { get; set; }
         public DateTime Birthdate { get; set; }

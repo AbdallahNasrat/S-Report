@@ -1,4 +1,5 @@
-﻿using Domain.Entites;
+﻿using Application.Constants;
+using Domain.Entites;
 using Domain.Interfaces.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -16,10 +17,29 @@ namespace Infrastructure.Repos
 
         }
 
+        public async Task<IEnumerable<User>> GetUsers(int page, int size, int? cityId = null)
+        {
+            page = page <= 0 ? 1 : page;
+            size = size <= 0 ? 10 : size;
+
+            IQueryable<User> query =  _context.Users.Include(u => u.Role).AsNoTracking();
+            if (cityId.HasValue)
+                query = query.Where(u => u.CityId == cityId);
+            query = query.Where(u => u.RoleId == AppRoles.User);
+            var users =
+                await query.OrderBy(u => u.Id)
+                .Skip((page - 1) * size)
+                .Take(size)
+                .ToListAsync();
+            return users;
+        }
+        
+
         public async Task<User> GetUserByEmailAsync(string email)
         {
             var user = await _context.Set<User>().Include(u => u.Role).FirstOrDefaultAsync(u => u.Email == email);
             return user;
         }
+
     }
 }

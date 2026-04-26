@@ -16,7 +16,7 @@ namespace Application.Services.UserServices
         //public Task<UserProfileResponseDto>GetUserProfileAsync(int userId);
         public Task<bool> BlokUserAsync(int userId);
         public Task<bool> UnBlokUserAsync(int userId);
-        //public Task<IEnumerable<UserProfileResponseDto>> GetAllUsersAsync();
+        public Task<IEnumerable<UserProfileResponseDto>> GetAllUsersAsync(int page , int size,int? cityId=null);
         //public Task<IEnumerable<UserProfileResponseDto>> GetAllCityUsersAsync(int cityId);
         public Task<bool> ToggleNotificationsAsync(int userId, NotificationToggleDto dto);
         public Task<bool> ToggleVolunteerAsync(int userId, ToggleDto dto);

@@ -13,7 +13,7 @@ namespace Presentation.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly IUserService _userService;
+        private readonly IUserService _userService;       
         public UserController(IUserService userService)
         {
             _userService = userService;
@@ -82,6 +82,26 @@ namespace Presentation.Controllers
             if (!result) return BadRequest("The request was not fulfilled.");
             return Ok("The user has been blocked.");
         }
+
+        [Authorize(Roles ="Admin,Employee")]
+        [HttpGet("All")]
+        public async Task<ActionResult<IEnumerable<UserProfileResponseDto>>> All([FromQuery] int page, [FromQuery] int size) {
+            var users = await _userService.GetAllUsersAsync(page, size);
+            if (users == null) return NotFound("No Users");
+            return Ok(users);
+        }
+        [Authorize(Roles = "Admin,Employee")]
+        [HttpGet("InCity")]
+        public async Task<ActionResult<IEnumerable<UserProfileResponseDto>>> CityUsers([FromQuery] int page, [FromQuery] int size) {
+            var cityIdClaim = User.FindFirstValue("cityId");
+            if (string.IsNullOrEmpty(cityIdClaim) || !int.TryParse(cityIdClaim, out int cityId))
+                return BadRequest("You cannot do this");
+
+            var users = await _userService.GetAllUsersAsync(page, size,cityId);           
+            return Ok(users);
+        }
+
+        
 
 
     }
