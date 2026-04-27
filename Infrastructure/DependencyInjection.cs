@@ -1,7 +1,7 @@
 ﻿using Application.SecurityService;
 using Application.Services.AiServices;
 using Application.Services.FileService;
-using Application.Services.NotficationServices;
+using Application.Services.NotificationServices;
 using Domain.Interfaces.Repositories;
 using Infrastructure.Notifications;
 using Infrastructure.Repos;
@@ -29,7 +29,7 @@ namespace Infrastructure
             services.AddScoped<IFileService, FileService>();
             services.AddScoped<IJwtProvider, JwtProvider>();
             services.Configure<JwtOptions>(configuration.GetSection("JwtSettings"));
-            services.AddScoped<INotificationService, FirebaseNotificationService>();
+            services.AddScoped<INotificationService, NotificationService>();
 
             var aiSettings = configuration.GetSection("AIServer");
             services.AddHttpClient<IAIService, AIService>(client =>

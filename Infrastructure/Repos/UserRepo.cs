@@ -37,7 +37,7 @@ namespace Infrastructure.Repos
 
         public async Task<User> GetUserByEmailAsync(string email)
         {
-            var user = await _context.Set<User>().Include(u => u.Role).FirstOrDefaultAsync(u => u.Email == email);
+            var user = await _context.Set<User>().Include(u => u.Role).Include(u => u.EmployeeProfile).AsNoTracking().FirstOrDefaultAsync(u => u.Email == email);
             return user;
         }
 

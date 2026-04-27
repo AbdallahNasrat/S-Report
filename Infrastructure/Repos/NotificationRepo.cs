@@ -12,6 +12,7 @@ namespace Infrastructure.Repos
     {
         public NotificationRepo(Context context) : base(context)
         {
+
         }
 
     }

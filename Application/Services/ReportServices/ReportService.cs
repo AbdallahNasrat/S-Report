@@ -13,8 +13,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Net.Mime.MediaTypeNames;
-using Application.Services.NotficationServices;
 using Application.DTOs.LookupDtos;
+using Application.Services.NotificationServices;
 
 namespace Application.Services.ReportServices
 {

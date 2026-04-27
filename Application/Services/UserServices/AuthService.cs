@@ -27,7 +27,7 @@ namespace Application.Services.UserServices
             
             if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
                 throw new UnauthorizedAccessException("Incorrect email address or password");
-            var token = _jwtProvider.GenerateToken(user);
+            var token = _jwtProvider.GenerateToken(user,user.EmployeeProfile?.Id);
             var response = new LoginResponseDTO()
             {
                 Token = token,
