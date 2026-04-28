@@ -1,4 +1,5 @@
 ﻿using Application.DTOs.NotficationDTOs;
+using Application.DTOs.NotificationDTOs;
 
 namespace Application.Services.NotificationServices
 {
@@ -8,7 +9,11 @@ namespace Application.Services.NotificationServices
         public Task<bool> SendTopicNotificationAsync(string topic, string title, string body);
 
         public Task<bool> SendNotificationToUser(int employeeId, SubmitNotificationDto dto);
-        public Task<bool> SendNotificationToCity(int employeeId, SubmitNotificationDto dto);
+        public Task<bool> SendNotificationToMultipleCities(int employeeId, SubmaitCityNotificationDto dto);
+        public Task<MyNotificationDto> GetNotificationById(int id);
+        public Task<IEnumerable<MyNotificationDto>>GetMyNotifications(int userId, int cityId);
+        public Task<IEnumerable<CityNotificationDto>> GetCityNotifications(int cityId);
+        public Task<IEnumerable<AllNotificationsInSystemDto>> GetAllNotifications(int page, int size);
 
 
 

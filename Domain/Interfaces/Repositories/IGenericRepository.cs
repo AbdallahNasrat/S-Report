@@ -26,6 +26,8 @@ namespace Domain.Interfaces.Repositories
         public  Task<T> GetFirstOrDefaultAsync(Expression<Func<T, bool>> predicate, bool tracked = true);
         //public Task<IEnumerable<T>> GetAllReadOnlyAsync();
 
+        public Task<IEnumerable<T>> GetWhereAsync(Expression<Func<T, bool>> predicate);
+
 
     }
 }

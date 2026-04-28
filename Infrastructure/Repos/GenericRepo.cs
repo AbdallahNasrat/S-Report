@@ -39,7 +39,7 @@ namespace Infrastructure.Repos
                 string[] values = properties.Split(',');
                 foreach (var prop in values)
                 {
-                    query.Include(prop);
+                    query = query.Include(prop); query.Include(prop);
                 }
             }
             return await query.AsNoTracking().ToListAsync();
@@ -82,5 +82,9 @@ namespace Infrastructure.Repos
 
             return await query.FirstOrDefaultAsync();
             }
+        public async Task<IEnumerable<T>> GetWhereAsync(Expression<Func<T, bool>> predicate)
+        {
+            return await _context.Set<T>().Where(predicate).ToListAsync();
         }
+    }
     }
