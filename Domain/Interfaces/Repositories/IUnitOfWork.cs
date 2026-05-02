@@ -28,6 +28,13 @@ namespace Domain.Interfaces.Repositories
         public IGenericRepository<ReportAnalysis> ReportAnalysisRepo { get;}
         public IGenericRepository<ReportCategory> ReportCategoryRepo { get;}
 
+        public IGenericRepository<ReportVolunteer> ReportVolunteersRepo { get; }
+        public IGenericRepository<PointsLog> PointsLogsRepo { get; }
+        public IGenericRepository<UserAchievement> UserAchievementsRepo { get; }
+
+
+
+
 
     }
 }

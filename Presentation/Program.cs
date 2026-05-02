@@ -9,6 +9,7 @@ using Microsoft.Identity.Client.Platforms.Features.DesktopOs.Kerberos;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.IdentityModel.Tokens.Experimental;
 using Microsoft.OpenApi.Models;
+using SReport.Hubs;
 using System.Text;
 using System.Text.Json.Serialization;
 namespace Presentation
@@ -20,6 +21,9 @@ namespace Presentation
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+
+            builder.Services.AddSignalR();
+
 
             builder.Services.AddControllers()
                 .AddJsonOptions(options => {
@@ -92,6 +96,7 @@ namespace Presentation
                 });
 
             });
+
             
             var app = builder.Build();
 
@@ -108,6 +113,8 @@ namespace Presentation
 
             app.UseAuthentication();
             app.UseAuthorization();
+
+            app.MapHub<ReportHub>("/reportHub");
 
             app.MapControllers();
 

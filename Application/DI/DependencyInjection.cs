@@ -23,6 +23,7 @@ namespace Application.DI
             services.AddScoped<IEmployeeService, EmployeeService>();
             services.AddScoped<ILookupsService, LookupService>();
             services.AddScoped<ITeamService, TeamService>();
+            services.AddScoped<IVolunteerService, VolunteerService>();
 
 
             return services;

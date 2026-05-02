@@ -193,5 +193,39 @@ namespace Infrastructure.Notifications
 
             return result;
         }
-    }
+
+
+
+        public async Task SendSilentMissionNotification(Report report)
+        {
+            // بنبعت لـ Topic باسم المدينة، عشان كل متطوعين المدينة دي يوصلهم الإشعار في الخلفية
+            string topicName = $"City_{report.CityId}_Volunteers";
+
+            // 🚀 لاحظ: إحنا مش بنحط "Notification" object عشان ميعملش صوت، بنحط "Data" بس
+            var message = new Message()
+            {
+                Topic = topicName,
+                Data = new Dictionary<string, string>()
+            {
+                { "type", "NEW_NEARBY_MISSION" }, // عشان فلاتر يعرف نوع الإشعار
+                { "reportId", report.Id.ToString() },
+                { "latitude", report.Latitude.ToString() },
+                { "longitude", report.Longitude.ToString() },
+                { "description", report.Description ?? "بلاغ جديد يحتاج لتدخل" }
+            }
+            };
+
+            try
+            {
+                // إرسال الإشعار لفايربيز
+                string response = await FirebaseMessaging.DefaultInstance.SendAsync(message);
+                Console.WriteLine($"Successfully sent message: {response}");
+            }
+            catch (Exception ex)
+            {
+                // يفضل تسجل الإيرور هنا لو فايربيز زعل
+                Console.WriteLine($"Error sending Firebase message: {ex.Message}");
+            }
+        }
+}
 }

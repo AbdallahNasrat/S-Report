@@ -1,20 +1,15 @@
-﻿using Application.DTOs.ReportDTOs;
+﻿using Application.DTOs.LookupDtos;
+using Application.DTOs.ReportDTOs;
+using Application.Services.AiServices;
+using Application.Services.NotificationServices;
 using Application.Services.FileService;
-using Application.Services.AiServices;
-
-using Application.Services.AiServices;
 using Domain.Entites;
 using Domain.Enums;
 using Domain.Exceptions;
 using Domain.Interfaces.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Net.Mime.MediaTypeNames;
-using Application.DTOs.LookupDtos;
-using Application.Services.NotificationServices;
+using Microsoft.AspNetCore.SignalR;
+using SReport.Hubs;
+
 
 namespace Application.Services.ReportServices
 {
@@ -24,11 +19,13 @@ namespace Application.Services.ReportServices
         private readonly IFileService _fileService;
         private readonly IAIService _aiService;
         private readonly INotificationService _notificationService;
-        public ReportService(IUnitOfWork uow, IFileService fileService , IAIService aiService  , INotificationService NotificationService) {
+        private readonly IHubContext<ReportHub> _hubContext;
+        public ReportService(IUnitOfWork uow, IFileService fileService , IAIService aiService  , INotificationService NotificationService, IHubContext<ReportHub> hubContext) {
             _uow = uow;
             _fileService = fileService;
             _aiService = aiService;
             _notificationService = NotificationService;
+            _hubContext = hubContext;
         }
         public async Task<bool> AddAILayer(Report report)
         {
@@ -79,6 +76,13 @@ namespace Application.Services.ReportServices
             {
                 try
                 {
+                    //SignalR
+                    await _hubContext.Clients.Group(report.CityId.ToString())
+                        .SendAsync("RefreshReports");
+
+                    //notification to volunteer
+                    await _notificationService.SendSilentMissionNotification(report);
+
                     // 1. حالة وجود صور
                     if (report.Medias.Any(m => m.Type == MediaType.Image) && report.Type == "other")
                     {
@@ -138,6 +142,9 @@ namespace Application.Services.ReportServices
                     var newReport = await AddReportAsync(userId, reportDto);
 
                     result.SuccessCount++;
+                    //signalR
+                    await _hubContext.Clients.Group(reportDto.CityId.ToString())
+                        .SendAsync("RefreshReports");
                 }
                 catch (Exception ex)
                 {
@@ -150,6 +157,9 @@ namespace Application.Services.ReportServices
                     result.FailureCount++;
                 }
             }
+            //SignalR
+            
+
 
             return result;
         }
@@ -289,7 +299,7 @@ namespace Application.Services.ReportServices
                 throw new Exception("Sorry, the status of a report that has already been resolved cannot be changed.");
             }
             report.State = newState;
-            var success = await _uow.SaveChangesAsync() > 0;
+            var success = await _uow.SaveChangesAsync() > 0;                     
 
             if (success && !string.IsNullOrEmpty(user?.FcmToken))
             {
@@ -310,6 +320,9 @@ namespace Application.Services.ReportServices
                 // نداء سيرفيس النوتفكيشن (بدون ما نعطل الـ Main Flow)
                 _ = _notificationService.SendNotificationAsync(user.FcmToken, title, body, notificationData);
             }
+
+            await _hubContext.Clients.Group(report.CityId.ToString())
+                .SendAsync("RefreshReports");
             return success;
         }
         public async Task<bool> CancelReportAsync(int reportId) {
@@ -319,9 +332,14 @@ namespace Application.Services.ReportServices
             }
             if(report.State!= ReportStatus.Closed && report.State != ReportStatus.InProgress && report.State != ReportStatus.Resolved)
                 report.State = ReportStatus.Closed;
-            return await _uow.SaveChangesAsync()>0;
+            var result =  await _uow.SaveChangesAsync()>0;
 
-
+            if (result) {
+                await _hubContext.Clients.Group(report.CityId.ToString())
+                .SendAsync("RefreshReports");
+            }
+            
+            return result;
         }
 
 
@@ -341,7 +359,16 @@ namespace Application.Services.ReportServices
             }
             report.TeamId = teamId;
             report.State = ReportStatus.InProgress;
-            return await _uow.SaveChangesAsync() > 0;
+            var result =  await _uow.SaveChangesAsync() > 0;
+            if (result)
+            {
+                await _hubContext.Clients.Group(report.CityId.ToString())
+                .SendAsync("RefreshReports");
+            }
+            return result;
+
+
+
         }
         public async Task<bool> ValidateReportAsync(int reportId, bool isValid) {
             var report = await _uow.ReportsRepo.GetByIdAsync(reportId);
@@ -361,7 +388,14 @@ namespace Application.Services.ReportServices
             }
             user.Rate = Math.Clamp(user.Rate, 0.0m, 5);
 
-            return await _uow.SaveChangesAsync()>0;
+            var result =  await _uow.SaveChangesAsync()>0;
+            if (result)
+            {
+                await _hubContext.Clients.Group(report.CityId.ToString())
+                .SendAsync("RefreshReports");
+            }
+            return result;
+
         }
         public async Task<bool> CorrectReportTypeAsync(int reportId, int categoryId)
         {

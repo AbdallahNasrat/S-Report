@@ -32,6 +32,11 @@ namespace Infrastructure.Repos
         
         public IGenericRepository<ReportAnalysis> ReportAnalysisRepo => _serviceProvider.GetRequiredService<IGenericRepository<ReportAnalysis>>();
 
+        public IGenericRepository<ReportVolunteer> ReportVolunteersRepo => _serviceProvider.GetRequiredService<IGenericRepository<ReportVolunteer>>();
+        public IGenericRepository<UserAchievement> UserAchievementsRepo => _serviceProvider.GetRequiredService<IGenericRepository<UserAchievement>>();
+
+        public IGenericRepository<PointsLog> PointsLogsRepo => _serviceProvider.GetRequiredService<IGenericRepository<PointsLog>>();
+
         public async Task<int> SaveChangesAsync()
         {
             return await _context.SaveChangesAsync();

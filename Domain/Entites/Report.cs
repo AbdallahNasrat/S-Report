@@ -29,5 +29,8 @@ namespace Domain.Entites
         public ICollection<Media> Medias { get; set; } = new List<Media>();
 
         public ReportAnalysis? ReportAnalysis { get; set; }
+
+        public ICollection<ReportVolunteer> AssignedVolunteers { get; set; }
+
     }
 }

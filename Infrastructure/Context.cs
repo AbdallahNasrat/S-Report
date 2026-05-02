@@ -25,10 +25,32 @@ namespace Infrastructure
         public DbSet<User> Users { get; set; }
         public DbSet<ReportCategory> ReportCategories { get; set; }
 
+        //volunteer Module 
+        public DbSet<ReportVolunteer> ReportVolunteers { get; set; }
+        public DbSet<PointsLog> PointsLogs { get; set; }
+        public DbSet<Achievement> Achievements { get; set; }
+        public DbSet<UserAchievement> UserAchievements { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder) {
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
-            
+
+
+            //volunteerModule 
+            modelBuilder.Entity<UserAchievement>()
+                .HasKey(ua => new { ua.UserId, ua.AchievementId });
+
+            // إعدادات إضافية (اختياري لضمان الدقة)
+            modelBuilder.Entity<ReportVolunteer>()
+                .HasOne(rv => rv.Report)
+                .WithMany(r => r.AssignedVolunteers)
+                .HasForeignKey(rv => rv.ReportId);
+
+            modelBuilder.Entity<ReportVolunteer>()
+                .HasOne(rv => rv.Volunteer)
+                .WithMany(u => u.Missions)
+                .HasForeignKey(rv => rv.VolunteerId);
+
         }
 
     }

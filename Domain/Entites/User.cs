@@ -36,5 +36,13 @@ namespace Domain.Entites
 
 
 
+        //volunteer Module
+        public int TotalPoints { get; set; } = 0;
+        public string? Avatar { get; set; }
+        public ICollection<ReportVolunteer> Missions { get; set; }
+        public ICollection<PointsLog> PointsHistory { get; set; }
+        public ICollection<UserAchievement> UserAchievements { get; set; }
+
+
     }
 }

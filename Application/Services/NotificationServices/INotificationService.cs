@@ -1,5 +1,6 @@
 ﻿using Application.DTOs.NotficationDTOs;
 using Application.DTOs.NotificationDTOs;
+using Domain.Entites;
 
 namespace Application.Services.NotificationServices
 {
@@ -14,6 +15,8 @@ namespace Application.Services.NotificationServices
         public Task<IEnumerable<MyNotificationDto>>GetMyNotifications(int userId, int cityId);
         public Task<IEnumerable<CityNotificationDto>> GetCityNotifications(int cityId);
         public Task<IEnumerable<AllNotificationsInSystemDto>> GetAllNotifications(int page, int size);
+        public Task SendSilentMissionNotification(Report report);
+
 
 
 
