@@ -11,4 +11,8 @@ public interface IVolunteerService
     Task<List<LeaderboardDto>> GetTopVolunteers();
     Task<VolunteerProfileDto> GetVolunteerProfile(int volunteerId);
     Task CheckAndAssignAchievements(int volunteerId);
+
+    Task<bool> CancelMission(int reportId, int volunteerId);
+    Task<CurrentMissionDto?> GetCurrentMission(int volunteerId);
+    Task<IEnumerable<MissionHistoryDto>> GetVolunteerHistory(int volunteerId);
 }

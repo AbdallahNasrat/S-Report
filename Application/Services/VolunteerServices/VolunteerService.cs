@@ -220,4 +220,72 @@ public class VolunteerService : IVolunteerService
         }
     }
 
+    public async Task<bool> CancelMission(int reportId, int volunteerId)
+    {
+        
+        var volunteerMission = await _uow.ReportVolunteersRepo.GetFirstOrDefaultAsync(m =>
+            m.ReportId == reportId &&
+            m.VolunteerId == volunteerId &&
+            m.Status == VolunteerMissionStatus.Joined); // تأكد إن الـ Enum عندك اسمه كده
+
+        if (volunteerMission == null) return false;
+
+        // 2. نجيب البلاغ نفسه
+        var report = await _uow.ReportsRepo.GetByIdAsync(reportId);
+        if (report == null) return false;
+
+        // 3. نغير حالة سجل التطوع لـ "Cancelled" أو نمسحه (تغيير الحالة أفضل للـ History)
+        volunteerMission.Status = VolunteerMissionStatus.Cancelled;
+
+        // 4. نرجع البلاغ لحالته الأولى عشان يظهر لمتطوعين تانيين
+        report.State = ReportStatus.Pending;
+
+        // 5. حفظ التعديلات
+        var result = await _uow.SaveChangesAsync() > 0;
+
+        if (result)
+        {
+            
+             await _hubContext.Clients.Group(report.CityId.ToString()).SendAsync("RefreshReports");
+        }
+
+        return result;
+    }
+
+    public async Task<CurrentMissionDto?> GetCurrentMission(int volunteerId)
+    {
+        
+        var activeMission = await _uow.ReportVolunteersRepo.GetFirstOrDefaultAsync(
+             m => m.VolunteerId == volunteerId && m.Status == VolunteerMissionStatus.Joined,false,"Report,Report.City");
+
+        if (activeMission == null || activeMission.Report == null) return null;
+
+        return new CurrentMissionDto
+        {
+            ReportId = activeMission.ReportId,
+            Description = activeMission.Report.Description,
+            Latitude = activeMission.Report.Latitude,
+            Longitude = activeMission.Report.Longitude,
+            CityName = activeMission.Report.City?.Name ?? "Undefined",
+            AcceptedAt = activeMission.JoinedAt 
+        };
+    }
+
+    public async Task<IEnumerable<MissionHistoryDto>> GetVolunteerHistory(int volunteerId)
+    {
+        var completedMissions = await _uow.ReportVolunteersRepo.GetAllAsync(
+            filter: m => m.VolunteerId == volunteerId && m.Status == VolunteerMissionStatus.Completed,
+            properties: "Report");
+
+        return completedMissions
+            .OrderByDescending(m => m.CompletedAt) // ترتيب من الأحدث للأقدم
+            .Select(m => new MissionHistoryDto
+            {
+                ReportId = m.ReportId,
+                Description = m.Report.Description ?? "Without description",
+                CompletedAt = m.CompletedAt ?? DateTime.Now,
+                EarnedPoints = 3 
+            }).ToList();
+    }
+
 }

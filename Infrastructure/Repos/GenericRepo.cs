@@ -67,7 +67,7 @@ namespace Infrastructure.Repos
             await _context.Set<T>().AddAsync(entity);
             return;
         }
-        public async Task<T?> GetFirstOrDefaultAsync(Expression<Func<T, bool>> predicate, bool tracked = true)
+        public async Task<T?> GetFirstOrDefaultAsync(Expression<Func<T, bool>> predicate, bool tracked = true,string? includeProperties = null)
         {
             IQueryable<T> query = _context.Set<T>();
             
@@ -75,11 +75,20 @@ namespace Infrastructure.Repos
             {
                 query = query.AsNoTracking();
             }
+
+            if (includeProperties != null)
+            {
+
+                foreach (var includeProp in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    query = query.Include(includeProp);
+                }
+
+            }
             if (predicate != null)
             {
-                return await query.FirstOrDefaultAsync(predicate);
+               return await query.FirstOrDefaultAsync(predicate);
             }
-
             return await query.FirstOrDefaultAsync();
             }
         public async Task<IEnumerable<T>> GetWhereAsync(Expression<Func<T, bool>> predicate)
@@ -87,4 +96,4 @@ namespace Infrastructure.Repos
             return await _context.Set<T>().Where(predicate).ToListAsync();
         }
     }
-    }
+}

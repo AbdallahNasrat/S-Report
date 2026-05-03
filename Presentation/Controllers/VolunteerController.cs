@@ -9,7 +9,7 @@ namespace SReport.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize] // عشان نضمن إن مفيش حد ينده الـ API من غير Token
+    [Authorize] 
     public class VolunteerController : ControllerBase
     {
         private readonly IVolunteerService _volunteerService;
@@ -19,7 +19,7 @@ namespace SReport.Api.Controllers
             _volunteerService = volunteerService;
         }
 
-        // 1. جلب البلاغات القريبة (بياخد الـ GPS والمدينة في الـ Query)
+        
         [Authorize(Roles ="User")]
         [HttpGet("nearby")]
         public async Task<ActionResult<IEnumerable<NearbyMissionResponseDto>>> GetNearbyMissions([FromQuery] int cityId, [FromQuery] decimal lat, [FromQuery] decimal lng)
@@ -75,6 +75,51 @@ namespace SReport.Api.Controllers
 
             var profile = await _volunteerService.GetVolunteerProfile(volunteerId);
             return Ok(profile);
+        }
+
+        //-----------------------------------
+        
+        [HttpPost("cancel/{reportId}")]
+        public async Task<IActionResult> CancelMission(int reportId)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int volunteerId))
+                return Unauthorized(new { message = "Invalid Token" });
+
+            var result = await _volunteerService.CancelMission(reportId, volunteerId);
+            if (!result)
+                return BadRequest(new { message = "You cannot withdraw from this task, make sure you have accepted it first." });
+
+            return Ok(new { message = "The withdrawal from the task was successful, and it will be assigned to another volunteer." });
+        }
+
+        
+        [HttpGet("current")]
+        public async Task<ActionResult<CurrentMissionDto>> GetCurrentMission()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int volunteerId))
+                return Unauthorized(new { message = "Invalid Token" });
+
+            var currentMission = await _volunteerService.GetCurrentMission(volunteerId);
+
+            
+            if (currentMission == null)
+                return NoContent();
+
+            return Ok(currentMission);
+        }
+
+        
+        [HttpGet("history")]
+        public async Task<ActionResult<IEnumerable<MissionHistoryDto>>> GetHistory()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int volunteerId))
+                return Unauthorized(new { message = "Invalid Token" });
+
+            var history = await _volunteerService.GetVolunteerHistory(volunteerId);
+            return Ok(history);
         }
     }
 }

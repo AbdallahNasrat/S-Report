@@ -23,7 +23,7 @@ namespace Domain.Interfaces.Repositories
 
         //GetAll 
         public Task<IEnumerable<T>> GetAllAsync(Expression<Func<T,bool>> filter = null,string properties="");
-        public  Task<T> GetFirstOrDefaultAsync(Expression<Func<T, bool>> predicate, bool tracked = true);
+        public  Task<T> GetFirstOrDefaultAsync(Expression<Func<T, bool>> predicate, bool tracked = true, string? includeProperties = null);
         //public Task<IEnumerable<T>> GetAllReadOnlyAsync();
 
         public Task<IEnumerable<T>> GetWhereAsync(Expression<Func<T, bool>> predicate);

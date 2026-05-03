@@ -9,6 +9,7 @@ namespace Domain.Enums
     public enum VolunteerMissionStatus
     {
         Joined = 1,
-        Completed = 2
+        Completed = 2,
+        Cancelled = 3
     }
 }
