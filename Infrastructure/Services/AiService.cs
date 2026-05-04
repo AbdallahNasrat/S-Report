@@ -8,14 +8,14 @@ using System.Net.Http.Json;
 
 public class AIService : IAIService
 {
-    private readonly HttpClient _httpClient;
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly IUnitOfWork _uow;
     private readonly IWebHostEnvironment _env; // محتاجين ده عشان نجيب المسار الكامل للملف
     private readonly IServiceScopeFactory _scopeFactory;
 
-    public AIService(HttpClient httpClient, IUnitOfWork uow, IWebHostEnvironment env, IServiceScopeFactory scopeFactory)
+    public AIService(IHttpClientFactory httpClientFactory, IUnitOfWork uow, IWebHostEnvironment env, IServiceScopeFactory scopeFactory)
     {
-        _httpClient = httpClient;
+        _httpClientFactory = httpClientFactory;
         _uow = uow;
         _env = env;
         _scopeFactory = scopeFactory;
@@ -28,7 +28,8 @@ public class AIService : IAIService
             var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
             try
             {
-                // Hugging Face Spaces أحياناً بتحتاج وقت عشان تقوم (Wake up)
+                var imageClient = _httpClientFactory.CreateClient("ImageAIServer");
+
                 using var content = new MultipartFormDataContent();
 
                 // السيرفر مستني الصورة في خانة اسم "files"
@@ -48,7 +49,7 @@ public class AIService : IAIService
                     content.Add(fileContent, "files", Path.GetFileName(physicalPath));
 
                     // نداء الـ Endpoint المسمى /predict
-                    var response = await _httpClient.PostAsync("/predict", content);
+                    var response = await imageClient.PostAsync("/predict", content);
 
                     if (response.IsSuccessStatusCode)
                     {
@@ -76,36 +77,58 @@ public class AIService : IAIService
 
             try
             {
-                using var content = new MultipartFormDataContent();
-                content.Add(new StringContent(reportId.ToString()), "report_id");
-                content.Add(new StringContent(description), "description");
+                var voiceTextClient = _httpClientFactory.CreateClient("VoiceTextAIServer");
+                HttpResponseMessage response;
 
+                // ========== حالة الصوت ==========
                 if (!string.IsNullOrEmpty(voiceRelativePath))
                 {
+                    using var content = new MultipartFormDataContent();
                     var physicalPath = Path.Combine(_env.WebRootPath, voiceRelativePath.TrimStart('/'));
+
                     if (File.Exists(physicalPath))
                     {
                         var fileStream = new FileStream(physicalPath, FileMode.Open, FileAccess.Read);
                         var fileContent = new StreamContent(fileStream);
-                        fileContent.Headers.ContentType = new MediaTypeHeaderValue("audio/mpeg"); // أو حسب الامتداد
+                        fileContent.Headers.ContentType = new MediaTypeHeaderValue("audio/mpeg");
 
-                        content.Add(fileContent, "voice", Path.GetFileName(physicalPath));
+                        // ⚠️ التعديل هنا: اسم الخانة بقى "file"
+                        content.Add(fileContent, "file", Path.GetFileName(physicalPath));
                     }
+
+                    // ⚠️ التعديل هنا: الـ Endpoint بقى "/predict"
+                    response = await voiceTextClient.PostAsync("/predict", content);
+                }
+                // ========== حالة النص ==========
+                else
+                {
+                    // ⚠️ التعديل هنا: الريكويست بقى JSON مش Multipart
+                    var textPayload = new { text = description };
+
+                    // ⚠️ التعديل هنا: الـ Endpoint بقى "/predict-text"
+                    response = await voiceTextClient.PostAsJsonAsync("/predict-text", textPayload);
                 }
 
-                var response = await _httpClient.PostAsync("/predict", content);
+                // ========== استلام النتيجة والـ Mapping ==========
                 if (response.IsSuccessStatusCode)
                 {
-                    var result = await response.Content.ReadFromJsonAsync<AIResponseDto>();
-                    await SaveAnalysisResult(reportId, result, unitOfWork);
+                    // بنقرا بالغلاف (Wrapper)
+                    var apiResponse = await response.Content.ReadFromJsonAsync<VoiceTextAiWrapperDto>();
+
+                    // نتأكد إن الـ status نجحت وإن فيه result رجع
+                    if (apiResponse != null && apiResponse.Status == "success" && apiResponse.Result != null)
+                    {
+                        // نبعت الداتا اللي جوه (Result) للفانكشن بتاعتنا
+                        await SaveAnalysisResult(reportId, apiResponse.Result, unitOfWork);
+                    }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Voice AI Upload Failed: {ex.Message}");
+                Console.WriteLine($"Voice/Text AI Failed: {ex.Message}");
             }
         }
-    }   
+    }
 
     private async Task SaveAnalysisResult(int reportId, AIResponseDto response , IUnitOfWork unitOfWork)
     {
@@ -125,8 +148,26 @@ public class AIService : IAIService
 
                 Recomendations = $"plan: {aiResult.Recommendation.ActionPlan}. UnitsRequired: {unitsText}",
 
-                ConfidenceScore = 1.0, // قيمة افتراضية
+                ConfidenceScore = 1.0, // قيمة افتراضية            
             };  
+
+            await unitOfWork.ReportAnalysisRepo.AddAsync(analysis);
+            await unitOfWork.SaveChangesAsync();
+        }
+    }
+    private async Task SaveAnalysisResult(int reportId, VoiceTextAiResponseDto response, IUnitOfWork unitOfWork)
+    {
+        if (response != null)
+        {
+            var analysis = new ReportAnalysis
+            {
+                ReportId = reportId,
+                ReportType = response.Category,    
+                ReportPriority = response.Priority,
+                ConvertedVoiceText = response.Final_Text ?? string.Empty,              
+                Recomendations = string.Empty,
+                ConfidenceScore = 1.0, // قيمة افتراضية
+            };
 
             await unitOfWork.ReportAnalysisRepo.AddAsync(analysis);
             await unitOfWork.SaveChangesAsync();

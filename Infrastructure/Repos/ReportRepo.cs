@@ -71,7 +71,7 @@ namespace Infrastructure.Repos
         }
         public async Task<IEnumerable<Report>> GetReportsByUserIdAsync(int userId, int pageNumber, int pageSize) {
             var reports = GetReportsQuery()
-                .Where(r => r.Id==userId)
+                .Where(r => r.UserId==userId)
                 .OrderByDescending(r => r.Id)
                 .Skip((pageNumber-1)*pageSize)
                 .Take(pageSize)

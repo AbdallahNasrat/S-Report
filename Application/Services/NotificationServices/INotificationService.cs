@@ -9,7 +9,7 @@ namespace Application.Services.NotificationServices
         public Task<bool> SendNotificationAsync(string deviceToken, string title, string body, Dictionary<string, string>? data = null);
         public Task<bool> SendTopicNotificationAsync(string topic, string title, string body);
 
-        public Task<bool> SendNotificationToUser(int employeeId, SubmitNotificationDto dto);
+        public Task<bool> SendNotificationToUser( SubmitNotificationDto dto, int? employeeId=null);
         public Task<bool> SendNotificationToMultipleCities(int employeeId, SubmaitCityNotificationDto dto);
         public Task<MyNotificationDto> GetNotificationById(int id);
         public Task<IEnumerable<MyNotificationDto>>GetMyNotifications(int userId, int cityId);

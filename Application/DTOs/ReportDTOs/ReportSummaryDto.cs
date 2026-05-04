@@ -16,7 +16,7 @@ namespace Application.DTOs.ReportDTOs
         public decimal Latitude { get; set; }
         public decimal Longitude { get; set; }
         public ReportStatus State { get; set; }
-        public string ReportType { get; set; }
+        public string? ReportType { get; set; }
         public List<MediaResponseDto> AttachedMedia { get; set; }
 
     }

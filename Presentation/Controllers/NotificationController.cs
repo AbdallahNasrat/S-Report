@@ -24,7 +24,7 @@ namespace Presentation.Controllers
         public async Task<IActionResult> SubmaitNotificationToUser(SubmitNotificationDto dto) {
             var employee = User.FindFirstValue("EmployeeId");
             if (string.IsNullOrEmpty(employee) || !int.TryParse(employee, out int employeeId)) { return Forbid("you cannot do this."); }
-            var result = await _notificationService.SendNotificationToUser(employeeId, dto);
+            var result = await _notificationService.SendNotificationToUser(dto, employeeId);
             if (!result) return BadRequest("Your notification was not sent");
             return Ok("Your notification has been sent");
         }

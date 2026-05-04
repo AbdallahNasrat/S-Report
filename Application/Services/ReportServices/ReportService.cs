@@ -105,7 +105,7 @@ namespace Application.Services.ReportServices
                     }
 
                     // 2. حالة وجود صوت (عملناها في الخلفية هي كمان عشان الموبايل ميهنجش)
-                    else if (report.Medias.Any(m => m.Type == MediaType.Audio) && report.Type == "other")
+                    else if (report.Type == "other")
                     {
                         _ = Task.Run(async () =>
                         {
@@ -286,43 +286,65 @@ namespace Application.Services.ReportServices
             {
                 throw new NotFoundException("Report does not found");
             }
-            var user = await _uow.UsersRepo.GetByIdAsync(report.UserId);
 
+            var user = await _uow.UsersRepo.GetByIdAsync(report.UserId);
             if (user == null)
             {
                 throw new NotFoundException("user does not found");
             }
+
             if (report.State == newState) return true;
 
             if (report.State == ReportStatus.Resolved && newState != ReportStatus.Resolved || report.State == ReportStatus.Closed)
             {
                 throw new Exception("Sorry, the status of a report that has already been resolved cannot be changed.");
             }
-            report.State = newState;
-            var success = await _uow.SaveChangesAsync() > 0;                     
 
+            // 1. تحديث حالة البلاغ
+            report.State = newState;
+
+            // 2. تجهيز نصوص الإشعار
+            string title = "Update regarding your report";
+            string body = newState switch
+            {
+                ReportStatus.InProgress => "We have started working on your report now.",
+                ReportStatus.Resolved => "Your report has been successfully resolved, thank you for your cooperation!",
+                ReportStatus.Closed => "The report has been closed..",
+                _ => $"Your report status is now: {newState}"
+            };
+
+            // 3. إضافة الإشعار في الداتابيز (In-App Notification)
+            var dbNotification = new Domain.Entites.Notification
+            {
+                Title = title,
+                Body = body,
+                UserId = report.UserId,
+                Date = DateTime.Now,
+                IsRead = false,
+                EmployeeId = null 
+            };
+            _uow.NotificationRepo.Add(dbNotification);
+
+            
+            var success = await _uow.SaveChangesAsync() > 0;
+
+            
             if (success && !string.IsNullOrEmpty(user?.FcmToken))
             {
-                string title = "Update regarding your report";
-                string body = newState switch
-                {
-                    ReportStatus.InProgress => "We have started working on your report now.",
-                    ReportStatus.Resolved => "Your report has been successfully resolved, thank you for your cooperation!",
-                    ReportStatus.Closed => "The report has been closed..",
-                    _ => $"Your report status is now: {newState}"
-                };
-                var notificationData = new Dictionary<string, string>{                        
-                        { "reportId", report.Id.ToString() },
-                        { "click_action", "FLUTTER_NOTIFICATION_CLICK" }, // ضرورية لبعض إصدارات أندرويد
-                        { "type", "REPORT_DETAILS" }
-                    };
+                var notificationData = new Dictionary<string, string>{
+            { "reportId", report.Id.ToString() },
+            { "click_action", "FLUTTER_NOTIFICATION_CLICK" }, // ضرورية لبعض إصدارات أندرويد
+            { "type", "REPORT_DETAILS" }
+        };
 
                 // نداء سيرفيس النوتفكيشن (بدون ما نعطل الـ Main Flow)
                 _ = _notificationService.SendNotificationAsync(user.FcmToken, title, body, notificationData);
             }
 
+            // 6. تحديث الداشبورد
             await _hubContext.Clients.Group(report.CityId.ToString())
                 .SendAsync("RefreshReports");
+
             return success;
         }
         public async Task<bool> CancelReportAsync(int reportId) {

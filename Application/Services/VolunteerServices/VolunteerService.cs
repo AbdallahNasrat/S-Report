@@ -1,6 +1,9 @@
 ﻿using Application.Constants;
 using Application.DTOs;
+using Application.DTOs.NotficationDTOs;
 using Application.DTOs.VolunteerDTOs;
+using Application.Services.NotificationServices;
+using Application.Services.ReportServices;
 using Domain.Entites;
 using Domain.Enums;
 using Domain.Interfaces.Repositories;
@@ -12,11 +15,13 @@ public class VolunteerService : IVolunteerService
 {
     private readonly IUnitOfWork _uow;
     private readonly IHubContext<ReportHub> _hubContext;
+    private readonly IReportService _reportService;
 
-    public VolunteerService(IUnitOfWork uow, IHubContext<ReportHub> hubContext)
+    public VolunteerService(IUnitOfWork uow, IHubContext<ReportHub> hubContext ,IReportService reportService)
     {
         _uow = uow;
         _hubContext = hubContext;
+        _reportService = reportService;
     }
 
     // ١. جلب البلاغات القريبة (الفلترة بالـ 3 كيلو)
@@ -55,8 +60,7 @@ public class VolunteerService : IVolunteerService
 
     // ٢. قبول البلاغ
     public async Task<bool> AcceptMission(int reportId, int volunteerId)
-    {
-        // 1. نسجل المتطوع في الجدول الوسيط
+    {   
         var mission = new ReportVolunteer
         {
             ReportId = reportId,
@@ -66,16 +70,10 @@ public class VolunteerService : IVolunteerService
         };
         _uow.ReportVolunteersRepo.Add(mission);
 
-        // 2. نحدث حالة البلاغ
-        var report = await _uow.ReportsRepo.GetByIdAsync(reportId);
-        report.State = ReportStatus.InProgress; 
-
         await _uow.SaveChangesAsync();
 
-        // 3. نبعت إشارة للداشبورد عشان البلاغ يختفي من قدام باقي المتطوعين
-        await _hubContext.Clients.Group(report.CityId.ToString()).SendAsync("RefreshReports");
-
-        return true;
+        var isStatusUpdated = await _reportService.UpdateReportStatusAsync(reportId, ReportStatus.InProgress);
+        return isStatusUpdated;
     }
 
     // ٣. إنهاء البلاغ وتوزيع النقاط
@@ -102,18 +100,14 @@ public class VolunteerService : IVolunteerService
             CreatedAt = DateTime.Now
         });
 
-        // 4. نحدث حالة البلاغ النهائي
-        var report = await _uow.ReportsRepo.GetByIdAsync(reportId);
-        report.State = ReportStatus.Resolved;
-
         await CheckAndAssignAchievements(volunteerId);
+
 
         await _uow.SaveChangesAsync();
 
-        // 5. نضرب جرس الـ SignalR
-        await _hubContext.Clients.Group(report.CityId.ToString()).SendAsync("RefreshReports");
+        var isStatusUpdated = await _reportService.UpdateReportStatusAsync(reportId, ReportStatus.Resolved);
 
-        return true;
+        return isStatusUpdated;
     }
 
     // ==========================================

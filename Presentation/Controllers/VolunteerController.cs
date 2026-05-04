@@ -57,7 +57,7 @@ namespace SReport.Api.Controllers
             return Ok(new { message = "The task has been completed and I successfully received the points!" });
         }
 
-        // 4. جلب لوحة الشرف (أفضل المتطوعين)
+        
         [HttpGet("leaderboard")]
         public async Task<ActionResult<IEnumerable< LeaderboardDto>>> GetLeaderboard()
         {

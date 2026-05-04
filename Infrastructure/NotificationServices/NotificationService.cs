@@ -82,7 +82,7 @@ namespace Infrastructure.Notifications
             return result;
         }
 
-        public async Task<bool>SendNotificationToUser(int employeeId,SubmitNotificationDto dto)
+        public async Task<bool>SendNotificationToUser(SubmitNotificationDto dto , int? employeeId = null)
         {
             var userId = dto.UserId ?? 0;
             if (userId == 0) throw new ArgumentNullException("userId");            
