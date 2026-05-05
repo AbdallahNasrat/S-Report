@@ -54,7 +54,7 @@ namespace Application.Services.UserServices
             {
                 NationalId = dto.NationalId,
                 FName = dto.FirstName,
-                SName = dto.SecoundName,
+                SName = dto.SecondName,
                 Address = dto.HomeAddress,
                 Email = dto.Email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),

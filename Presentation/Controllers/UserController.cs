@@ -101,6 +101,29 @@ namespace Presentation.Controllers
             return Ok(users);
         }
 
+        [HttpGet]
+        public async Task<ActionResult<UserProfileResponseDto>> UserData() {
+            var userCard = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userCard == null || !int.TryParse(userCard, out int userId)) return NotFound("not valid user");
+
+            var result = await _userService.GetUserProfile(userId);
+            if (result == null) return NotFound("not valid user");
+            return Ok(result);
+
+        }
+
+        [HttpPut("UserData")]
+        public async Task<IActionResult> UpdateUserData([FromBody] UpdateUserInfoDTO dto) {
+            var userCard = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userCard == null || !int.TryParse(userCard, out int userId)) return NotFound("not valid user");
+            if (dto == null) return BadRequest("Enter Valid data");
+
+            var result = await _userService.UpdateUserProfile(userId, dto);
+            if (!result) return BadRequest("The user data has not changed.");
+            return Ok("The user data has  changed.");
+
+        }
+
         
 
 

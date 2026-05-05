@@ -1,4 +1,4 @@
-using Application.DI;
+﻿using Application.DI;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Infrastructure;
@@ -9,6 +9,7 @@ using Microsoft.Identity.Client.Platforms.Features.DesktopOs.Kerberos;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.IdentityModel.Tokens.Experimental;
 using Microsoft.OpenApi.Models;
+using SReport.Api.Middlewares;
 using SReport.Hubs;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -19,6 +20,7 @@ namespace Presentation
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
 
             // Add services to the container.
 
@@ -88,28 +90,29 @@ namespace Presentation
 
             builder.Services.AddCors(options =>
             {
-                options.AddDefaultPolicy(policy =>
+                options.AddPolicy("AllowAll", policy =>
                 {
-                    policy.AllowAnyOrigin()
-                     .AllowAnyHeader()
-                     .AllowAnyMethod();
+                    policy.AllowAnyMethod()
+                          .AllowAnyHeader()
+                          .SetIsOriginAllowed(origin => true) // دي التريكة اللي بتسمح لأي فرونت إند يكلمك
+                          .AllowCredentials(); // دي عشان الـ SignalR والـ Cookies لو بتستخدموها
                 });
-
             });
 
-            
+
             var app = builder.Build();
+            app.UseMiddleware<ExceptionMiddleware>();
 
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
+            //if (app.Environment.IsDevelopment())
+            // {
+            app.UseSwagger();
                 app.UseSwaggerUI();
-            }
+          //  }
             app.UseStaticFiles();
             app.UseHttpsRedirection();
 
-            app.UseCors();
+            app.UseCors("AllowAll");
 
             app.UseAuthentication();
             app.UseAuthorization();

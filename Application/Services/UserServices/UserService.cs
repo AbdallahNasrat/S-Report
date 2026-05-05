@@ -38,10 +38,7 @@ namespace Application.Services.UserServices
             return await _uow.SaveChangesAsync()>0;
         }
 
-        //public Task<IEnumerable<UserProfileResponseDto>> GetAllCityUsersAsync(int cityId)
-        //{
-        //    throw new NotImplementedException();
-        //}
+
 
         public async Task<IEnumerable<UserProfileResponseDto>> GetAllUsersAsync(int page , int size, int? cityId = null)
         {
@@ -65,10 +62,7 @@ namespace Application.Services.UserServices
             return result;
         }
 
-        //public Task<UserProfileResponseDto> GetUserProfileAsync(int userId)
-        //{
-        //    throw new NotImplementedException();
-        //}
+
 
         public async Task<bool> ToggleNotificationsAsync(int userId, NotificationToggleDto dto)
         {
@@ -97,9 +91,45 @@ namespace Application.Services.UserServices
             return await _uow.SaveChangesAsync() > 0 ;
         }
 
-        //public Task<bool> UpdateUserInfoAsync(UpdateUserInfoDTO dto)
-        //{
-        //    throw new NotImplementedException();
-        //}
-    }
-}
+        public async Task<UserProfileResponseDto> GetUserProfile(int userId)
+        {
+            var user = await _uow.UsersRepo.GetByIdAsync(userId, false);
+            if (user == null) throw new NotFoundException("user does not exist");
+
+            var result = new UserProfileResponseDto()
+            {
+                FirstName = user.FName,
+                SecundName = user.SName,
+                Address =   user.Address,
+                Birthdate = user.Birthdate,
+                Email =     user.Email,
+                Gender =    user.Gender,
+                NationalId = user.NationalId,
+                Phone =     user.Phone,
+                Rate =      user.Rate,
+                Notification = user.IsNotificationEnabled,
+                Volunteer =     user.Volunteer
+            };
+            return result;
+
+        }
+
+        public async Task<bool> UpdateUserProfile(int userId, UpdateUserInfoDTO dto)
+        {
+            var user = await _uow.UsersRepo.GetByIdAsync(userId);
+            if(user == null) throw new NotFoundException("user does not exist");
+            if(dto == null) throw new ArgumentNullException("enter valid data");
+
+            user.FName = dto.FirstName;
+            user.SName = dto.SecondName;
+            user.Address = dto.HomeAddress;
+            user.Phone = dto.Phone;
+            user.Email = dto.Email;
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+            user.CityId = dto.CityId;
+            return await _uow.SaveChangesAsync() > 0; 
+
+
+        }    
+    }       
+}          

@@ -211,6 +211,7 @@ namespace Application.Services.ReportServices
                 Latitude = r.Latitude,
                 Longitude = r.Longitude,
                 State = r.State,
+                ReportType = r.Type,
                 AttachedMedia = r.Medias.Select(m => new MediaResponseDto()
                 {
                     FileURL = m.FilePath,

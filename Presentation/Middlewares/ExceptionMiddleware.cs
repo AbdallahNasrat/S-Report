@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using Domain.Exceptions;
+using System.Net;
 using System.Text.Json;
 
 namespace SReport.Api.Middlewares
@@ -25,30 +26,37 @@ namespace SReport.Api.Middlewares
             }
             catch (Exception ex)
             {
-                // لو حصل أي إيرور في أي مكان في السيستم، هنمسكه هنا
                 _logger.LogError(ex, ex.Message);
-
                 context.Response.ContentType = "application/json";
-                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
-                // لو إحنا في بيئة التطوير (Local) بنعرض تفاصيل الإيرور، لو في السيرفر (Production) بنخفيها
-                object response; // بنعرفه كـ object عام
+                // القاموس السحري
+                var statusCodesMapping = new Dictionary<Type, int>
+                {
+                    { typeof(UnauthorizedAccessException), StatusCodes.Status401Unauthorized },
+                    { typeof(KeyNotFoundException), StatusCodes.Status404NotFound },
+                    { typeof(ArgumentException), StatusCodes.Status400BadRequest },
+                    { typeof(ArgumentNullException), StatusCodes.Status400BadRequest },
+                    { typeof(InvalidOperationException), StatusCodes.Status400BadRequest },
+                    { typeof(Microsoft.EntityFrameworkCore.DbUpdateException), StatusCodes.Status409Conflict },
+                    { typeof(NotFoundException), StatusCodes.Status404NotFound}
+                };
 
-                if (_env.IsDevelopment())
-                {
-                    // هنا بياخد 3 خصائص
-                    response = new { StatusCode = context.Response.StatusCode, Message = ex.Message, Details = ex.StackTrace?.ToString() };
-                }
-                else
-                {
-                    // هنا بياخد خاصيتين براحته خالص
-                    response = new { StatusCode = context.Response.StatusCode, Message = "An internal server error occurred, it is being worked on." };
-                }
+                // لو الإيرور متسجل هياخد رقمه، لو مش متسجل هياخد 500
+                int finalStatusCode = statusCodesMapping.ContainsKey(ex.GetType())
+                    ? statusCodesMapping[ex.GetType()]
+                    : StatusCodes.Status500InternalServerError;
+
+                context.Response.StatusCode = finalStatusCode;
+
+                // الرسالة: لو 500 وبرودكشن هنخفيها، غير كده هنرجع رسالتك اللي إنت كاتبها
+                string finalMessage = finalStatusCode == 500 && !_env.IsDevelopment()
+                    ? "حدث خطأ داخلي في الخادم، جاري العمل عليه."
+                    : ex.Message;
+
+                var response = new { StatusCode = finalStatusCode, Message = finalMessage };
 
                 var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-                var json = JsonSerializer.Serialize(response, options);
-
-                await context.Response.WriteAsync(json);
+                await context.Response.WriteAsync(JsonSerializer.Serialize(response, options));
             }
         }
     }
