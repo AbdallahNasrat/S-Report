@@ -1,0 +1,1221 @@
+﻿
+/* ==========================================
+   File: Program.cs
+========================================== */
+
+using Application.DI;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
+using Infrastructure;
+using Infrastructure.SecurityService;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Identity.Client.Platforms.Features.DesktopOs.Kerberos;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.IdentityModel.Tokens.Experimental;
+using Microsoft.OpenApi.Models;
+using SReport.Api.Middlewares;
+using SReport.Hubs;
+using System.Text;
+using System.Text.Json.Serialization;
+namespace Presentation
+{
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            var builder = WebApplication.CreateBuilder(args);
+
+
+            // Add services to the container.
+
+            builder.Services.AddSignalR();
+
+
+            builder.Services.AddControllers()
+                .AddJsonOptions(options => {
+                    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                });
+            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen(opt =>
+            {
+                opt.SwaggerDoc("v1", new OpenApiInfo { Title = "S-Report API", Version = "v1" });
+
+                //  (JWT Bearer)
+                opt.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    In = ParameterLocation.Header,
+                    Description = "Please enter token",
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    BearerFormat = "JWT",
+                    Scheme = "bearer"
+                });
+                opt.AddSecurityRequirement(new OpenApiSecurityRequirement{
+                    {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    new string[]{}
+                    }
+                 });
+            });
+
+            //DB -- Link Database At infrastructure project with Presentation Project
+            builder.Services.AddInfrastructureServices(builder.Configuration);
+            builder.Services.AddApplicationService();
+            var jwtSections = builder.Configuration.GetSection("JwtSettings");
+            var jwtOptions = jwtSections.Get<JwtOptions>();
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = false,
+                        ValidIssuer = jwtOptions.Issuer,
+                        ValidateAudience = false,
+                        ValidAudience = jwtOptions.Audience,
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key)),
+                        ValidateLifetime = true,
+                        ClockSkew = TimeSpan.Zero
+                    };
+                });
+
+            FirebaseApp.Create(new AppOptions() {
+                Credential = GoogleCredential.FromFile("firebase-config.json")
+            });
+
+
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", policy =>
+                {
+                    policy.AllowAnyMethod()
+                          .AllowAnyHeader()
+                          .SetIsOriginAllowed(origin => true) // دي التريكة اللي بتسمح لأي فرونت إند يكلمك
+                          .AllowCredentials(); // دي عشان الـ SignalR والـ Cookies لو بتستخدموها
+                });
+            });
+
+
+            var app = builder.Build();
+            app.UseMiddleware<ExceptionMiddleware>();
+
+            // Configure the HTTP request pipeline.
+            //if (app.Environment.IsDevelopment())
+            // {
+            app.UseSwagger();
+                app.UseSwaggerUI();
+          //  }
+            app.UseStaticFiles();
+            app.UseHttpsRedirection();
+
+            app.UseCors("AllowAll");
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            app.MapHub<ReportHub>("/reportHub");
+
+            app.MapControllers();
+
+            app.Run();
+        }
+    }
+}
+
+/* ==========================================
+   File: AdminController.cs
+========================================== */
+
+using Application.Constants;
+using Application.DTOs.EmployeeDTOs;
+using Application.Services.AdminServices;
+using Domain.Entites;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+
+namespace Presentation.Controllers
+{
+    [Authorize(Roles ="Admin")]
+    [Route("api/[controller]")]
+    [ApiController]
+    public class AdminController : ControllerBase
+    {
+        private readonly IAdminService _adminService;
+        public AdminController(IAdminService adminService)
+        {
+            _adminService = adminService;
+        }
+
+
+        [HttpPost("AddAdmin")]
+        public async Task<IActionResult> AddAdmin([FromBody] RegisterEmployeeDto dto) {
+            var newAdmin = await _adminService.AddAdminAsync(dto);
+            if (newAdmin) {
+                return Ok("The admin has been Successfully Added");
+            }
+            return BadRequest("An error occurred");
+        }
+    }
+}
+
+/* ==========================================
+   File: AuthController.cs
+========================================== */
+
+using Application.Constants;
+using Application.DTOs.UserDTOs;
+using Application.Services.UserServices;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+
+namespace Presentation.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class AuthController : ControllerBase
+    {
+        private readonly IAuthService _authService;
+        public AuthController(IAuthService authService)
+        {
+            _authService = authService;
+        }
+
+        [HttpPost("LogUp")]
+        public async Task<IActionResult> LogUp([FromBody] RegisterUserDto dto) {
+            var result = _authService.LogUp(dto,AppRoles.User);
+            if(result.Result == true) {
+                return Ok("User registered successfully!");
+
+            }
+            return BadRequest("Something went wrong while saving the user.");
+
+        }
+
+        [HttpPost("Login")]
+        public async Task<ActionResult<LoginResponseDTO>> Login([FromBody]LoginDTO dto) {
+            var result = await _authService.LoginAsync(dto.Email, dto.Password);
+            return Ok(result);
+
+        }
+   
+    }
+}
+
+/* ==========================================
+   File: EmployeeController.cs
+========================================== */
+
+using Application.Constants;
+using Application.DTOs.EmployeeDTOs;
+using Application.Services.EmployeeServices;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Presentation.Controllers
+{
+    [Authorize(Roles ="Admin,Employee")]
+    [Route("api/[controller]")]
+    [ApiController]
+    public class EmployeeController : ControllerBase
+    {
+        IEmployeeService _employeeService;
+        public EmployeeController(IEmployeeService employeeService)
+        {
+            _employeeService = employeeService;
+        }
+
+        [Authorize(Roles ="Admin")]
+        [HttpGet("All")]
+        public async Task<ActionResult<IEnumerable<EmployeeDTO>>> AllEmployees() {
+            var employees = await _employeeService.GetAllEmployeesAsync();
+            if (employees == null || !employees.Any()) return NotFound("There are no employees. ");
+            return Ok(employees);
+        }
+        [Authorize(Roles ="Admin,Employee")]
+        [HttpGet("{cityId}/All")]
+        public async Task<ActionResult<IEnumerable<EmployeeDTO>>> CityEmployees(int cityId) {
+            var employees = await _employeeService.GetAllEmployeesAsync(cityId);
+            if (employees == null || !employees.Any()) return NotFound("There are no employees. ");
+            return Ok(employees);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<EmployeeDTO>> GetEmployeeById(int id) {
+            var emp = await _employeeService.GetEmployeeAsync(id);
+            if (emp == null) return NotFound("There are no employee");
+            return Ok(emp);
+
+
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> EditEmployeeData([FromRoute] int id, [FromBody] EmployeeDTO dto)
+        {
+            if (id != dto.EmployeeId) return BadRequest("There is a difference in Employee ID");
+            var result = await _employeeService.EditEmployeeDataAsync(dto);
+            if (!result)
+                return BadRequest("Employee data has not been modified");
+            return Ok("Employee data has been updated");         
+        }
+        [HttpPost("AddEmployee")]
+        public async Task<IActionResult> AddEmployee([FromBody] RegisterEmployeeDto dto)
+        {
+            var newEmployee = await _employeeService.RegisterEmployeeAsync(dto, AppRoles.Employee);
+            if (newEmployee)
+                return Ok("The employee has been Successfully Added.");
+            return BadRequest("An error occurred");
+
+        }
+
+
+    }
+}
+
+/* ==========================================
+   File: GeneralController.cs
+========================================== */
+
+using Application.DTOs.LookupDtos;
+using Application.Services.GeneralServices;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Presentation.Controllers
+{
+    [Authorize]
+    [Route("api/[controller]")]
+    [ApiController]
+    public class GeneralController : ControllerBase
+    {
+        private readonly ILookupsService _lookupsService;
+        public GeneralController(ILookupsService lookupsService)
+        {
+            _lookupsService = lookupsService;
+        }
+        [AllowAnonymous]
+        [HttpGet("Cities")]       
+        public async Task<ActionResult<IEnumerable<LookupDto>>> GetAllCities() {
+            var cities =  await _lookupsService.GetCitiesAsync();
+            return Ok(cities);
+        }   
+
+    }
+}
+
+/* ==========================================
+   File: NotificationController.cs
+========================================== */
+
+using Application.DTOs.NotficationDTOs;
+using Application.DTOs.NotificationDTOs;
+using Application.Services.NotificationServices;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+
+namespace Presentation.Controllers
+{
+    
+    [Route("api/[controller]")]
+    [ApiController]
+    public class NotificationController : ControllerBase
+    {
+        private readonly INotificationService _notificationService;
+            public NotificationController(INotificationService notificationService)
+        {
+            _notificationService = notificationService;
+        }
+        [Authorize(Roles = "Admin,Employee")]
+        [HttpPost("user")]
+
+        public async Task<IActionResult> SubmaitNotificationToUser(SubmitNotificationDto dto) {
+            var employee = User.FindFirstValue("EmployeeId");
+            if (string.IsNullOrEmpty(employee) || !int.TryParse(employee, out int employeeId)) { return Forbid("you cannot do this."); }
+            var result = await _notificationService.SendNotificationToUser(dto, employeeId);
+            if (!result) return BadRequest("Your notification was not sent");
+            return Ok("Your notification has been sent");
+        }
+        [Authorize(Roles = "Admin,Employee")]
+        [HttpPost("Multiple_Cities")]
+        public async Task<IActionResult>SubmaitToMultibleCities(SubmaitCityNotificationDto dto)
+
+        {
+            var employee = User.FindFirstValue("EmployeeId");
+            if (string.IsNullOrEmpty(employee) || !int.TryParse(employee, out int employeeId)) { return Forbid("you cannot do this."); }
+            var result = await _notificationService.SendNotificationToMultipleCities(employeeId, dto);
+            if (!result) return BadRequest("Your notification was not sent");
+            return Ok("Your notification has been sent");
+        }
+
+        [Authorize(Roles = "Admin,Employee,User")]
+        [HttpGet("{id}")]
+        public async Task<ActionResult<MyNotificationDto>> GetNotificationById(int id) {
+            var result = await _notificationService.GetNotificationById(id);
+            if (result == null) return NotFound("the Notification does not exist");
+            return Ok(result);
+        }
+        [Authorize(Roles ="User")]
+        [HttpGet("MyNotifications")]
+        public async Task<ActionResult<IEnumerable<MyNotificationDto>>> MyNotifications() {
+            var user = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if(user== null || !int.TryParse(user,out int userId)) return BadRequest("You cannot do this");
+
+            var cityIdClaim = User.FindFirstValue("cityId");
+            if (string.IsNullOrEmpty(cityIdClaim) || !int.TryParse(cityIdClaim, out int cityId))
+                return BadRequest("You cannot do this");
+
+            var notification = await _notificationService.GetMyNotifications(userId, cityId);
+            return Ok(notification);
+        }
+
+        [Authorize(Roles ="Admin,Employee")]
+        [HttpGet("city")]
+        public async Task<ActionResult<IEnumerable<CityNotificationDto>>> GetCityNotifications() {
+            var city = User.FindFirstValue("cityId");
+            if (string.IsNullOrEmpty(city) || !int.TryParse(city, out int cityId)) return BadRequest("cityId does not exist");
+            var result = await _notificationService.GetCityNotifications(cityId);
+            return Ok(result);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("all-Notifications")]
+        public async Task<ActionResult<IEnumerable<AllNotificationsInSystemDto>>> GetAllNotifications(
+            [FromQuery] int page = 1,
+            [FromQuery] int size = 10)
+        {
+            
+            var result = await _notificationService.GetAllNotifications(page, size);
+
+            
+            return Ok(result);
+        }
+    }
+}
+
+/* ==========================================
+   File: ReportController.cs
+========================================== */
+
+using Application.DTOs.LookupDtos;
+using Application.DTOs.ReportDTOs;
+using Application.DTOs.TeamsDTOs;
+using Application.Services.ReportServices;
+using Domain.Entites;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Drawing;
+using System.Security.Claims;
+
+namespace Presentation.Controllers
+{
+    [Authorize]
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ReportController : ControllerBase
+    {
+        private readonly IReportService _reportService;
+        public ReportController(IReportService reportService)
+        {
+            _reportService = reportService;
+        }
+        [HttpPost]
+        public async Task<IActionResult> AddReportAsync([FromForm] CreateReportDTO dto)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+                return Unauthorized("User ID not found in token.");
+            int userId = int.Parse(userIdClaim.Value);
+
+            var result = await _reportService.AddReportAsync(userId, dto);
+            if (!result)
+                return BadRequest("The report has not been added");
+            return Ok("The report has  been added successfully");
+        }
+
+        [Authorize(Roles="Admin")]
+        [HttpGet("All")]
+        public async Task<ActionResult<IEnumerable<ReportDetailsDto>>> AllReports([FromQuery] int page, [FromQuery] int size, [FromQuery] bool excludeResolved = true) {
+            var reports = await _reportService.GetFilteredReportsAsync(pageNumber: page, pageSize: size, excludeResolved: excludeResolved);
+            if (reports == null || !reports.Any()) { return NotFound("No Reports"); }
+            return Ok(reports);
+        }
+
+        [Authorize(Roles = "Admin,Employee")]
+        [HttpGet("CityReports")]
+        public async Task<ActionResult<IEnumerable<ReportDetailsDto>>> CityReports([FromQuery] int page, [FromQuery] int size, [FromQuery] bool excludeResolved = true) {
+            var cityIdClaim = User.FindFirstValue("cityId");
+
+            if (string.IsNullOrEmpty(cityIdClaim) || !int.TryParse(cityIdClaim, out int cityId))
+            {
+
+                return Forbid("This account is not linked to a specific city.");
+            }
+            if (page <= 0) page = 1;
+            if (size <= 0 || size > 50) size = 10;
+
+            var reports = await _reportService.GetFilteredReportsAsync( page, size, excludeResolved, cityId);
+            return Ok(reports);
+        }
+        [Authorize(Roles = "User")]
+        [HttpGet("MyReports")]
+        public async Task<ActionResult<IEnumerable<ReportSummaryDto>>> MyReports([FromQuery] int pageNumber, int pageSize) {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId)) {
+                return Forbid("This account is not linked to a app.");
+            }
+            if (pageSize <= 0) pageNumber = 1;
+            if (pageSize <= 0 || pageSize > 50) pageSize = 10;
+            var reports = await _reportService.GetMyReportsAsync(userId, pageNumber, pageSize);
+            return Ok(reports);
+        }
+        [Authorize(Roles = "Admin,Employee")]
+        [HttpGet("ReportDetails/{id}")]
+        public async Task<ActionResult<ReportDetailsDto>> ReportDetails(int id) {
+
+            var userRole = User.FindFirstValue(ClaimTypes.Role);
+            var cityIdClaim = User.FindFirstValue("cityId");
+
+            var report = await _reportService.GetReportByIdAsync(id);
+            if (report == null)
+                return NotFound("The Report does not exist");
+            if (userRole == "Employee")
+            {
+
+                if (int.TryParse(cityIdClaim, out int cityId) && report.CityId != cityId) {
+                    return Forbid("You are not allowed to access reports outside your city");
+                }
+            }
+            return Ok(report);
+        }
+        [HttpGet("ReportSummary/{id}")]
+        public async Task<ActionResult<ReportDetailsDto>> ReportSummary(int id) {
+
+            var userClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var report = await _reportService.GetReportSummaryByIdAsync(id, false);
+            if (report == null) {
+                return NotFound("The Report Does Not Exist");
+            }
+            if (!int.TryParse(userClaim, out int userId) && report.UserId != userId) {
+                return Forbid("You are not allowed to access reports not for you");
+            }
+            return Ok(report);
+        }
+
+        [Authorize(Roles = "Employee")]
+        [HttpPatch("{reportId}/status")]
+        public async Task<IActionResult> UpdateReportState([FromRoute] int reportId, [FromBody] UpdateReportStatusDto dto) {
+            if (dto == null || reportId == 0) {
+                return NotFound("The report is not found or the report status has not changed.");
+            }
+            var result = await _reportService.UpdateReportStatusAsync(reportId, dto.Status);
+            if (!result) {
+                return NotFound("the report status has not changed");
+            }
+            return Ok("the report status has been changed");
+
+        }
+        [HttpPut("{id}/cancel")]
+        public async Task<IActionResult> CancelReport([FromRoute] int id) {
+            if (id <= 0)
+                return BadRequest("Enter Valid Number");
+            var result = await _reportService.CancelReportAsync(id);
+            if (!result) { return BadRequest("The report has not been cancelled."); }
+            return Ok("The report has been cancelled.");
+        }
+
+        [HttpPost("SynOfflineReports")]
+        public async Task<ActionResult<SyncResultDto>> SyncOfflineReports([FromBody] IEnumerable<CreateReportDTO> dto) {
+            if (dto == null || !dto.Any()) { return BadRequest("the Reports list is empty"); }
+            var user = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (user == null || !int.TryParse(user.Value, out int userId)) { return Unauthorized("User identification failed"); }
+            var result = await _reportService.SyncOfflineReports(userId, dto);
+            return Ok(result);
+        }
+
+
+        [Authorize(Roles ="Employee")]
+        [HttpPatch("{reportId}/Team")]
+        public async Task<IActionResult> AssignTeam(int reportId, [FromBody] AssignTeamDto dto){
+            if (dto == null )
+                return BadRequest("Enter Valid TeamId");
+            var result = await _reportService.AssignTeamToReportAsync(reportId, dto.TeamId);
+            if (!result) { return BadRequest("The team was not assigned to the report."); }
+            return Ok("The team received the report");
+        }
+        [Authorize(Roles ="Employee,Admin")]
+        [HttpPatch("{reportId}/Type")]
+        public async Task<IActionResult> CorrectReportType(int reportId, [FromBody] ReportTypeDto dto) {
+            var result = await _reportService.CorrectReportTypeAsync(reportId, dto.categoryId);
+            if (!result) {
+                return BadRequest("The report type has not changed.");
+            }       
+            return Ok("The report type has been changed.");
+        }
+        [Authorize(Roles =("Admin,Employee"))]
+        [HttpGet("Categories")]
+        public async Task<ActionResult<IEnumerable<LookupDto>>> Categories() {
+            var categories = await _reportService.GetCategories();
+            if (categories == null || !categories.Any()) {
+                return NotFound("No Categories"); }
+            return Ok(categories);
+            }
+        }
+
+
+
+
+
+
+
+    }
+
+
+
+/* ==========================================
+   File: TeamController.cs
+========================================== */
+
+using Application.DTOs.TeamsDTOs;
+using Application.Services.TeamService;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace WebApi.Controllers
+{
+    [Authorize]
+    [Route("api/[controller]")]
+    [ApiController]
+    public class TeamsController : ControllerBase
+    {
+        private readonly ITeamService _teamService;
+
+        public TeamsController(ITeamService teamService)
+        {
+            _teamService = teamService;
+        }
+
+        [Authorize(Roles ="Admin,Employee")]
+        // GET: api/teams
+        [HttpGet]
+        public async Task<IActionResult> GetAllTeams()
+        {
+            var teams = await _teamService.GetTeamsAsync();
+            return Ok(teams); // ok(list) or EmptyList
+        }
+
+        [Authorize(Roles = "Admin,Employee")]
+        // GET: api/teams/5
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetTeamById(int id)
+        {
+            var team = await _teamService.GetTeamByIdAsync(id);
+            if (team == null)
+                return NotFound(new { message = $"team wit id :  {id} does not exist" }); // 404
+
+            return Ok(team);
+        }
+
+        [Authorize(Roles = "Admin,Employee")]
+        // GET: api/teams/name/Tigers
+        [HttpGet("name/{name}")]
+        public async Task<IActionResult> GetTeamByName(string name)
+        {
+            var team = await _teamService.GetTeamByNameAsync(name);
+            if (team == null)
+                return NotFound(new { message = $"There is no team named {name}" });
+
+            return Ok(team);
+        }
+
+        [Authorize(Roles = "Admin,Employee")]
+        // GET: api/teams/city/3
+        [HttpGet("city/{cityId}")]
+        public async Task<IActionResult> GetTeamsByCityId(int cityId)
+        {
+            var teams = await _teamService.GetTeamsByCityIdAsync(cityId);
+            return Ok(teams);
+        }
+
+        [Authorize(Roles = "Admin")]
+        // POST: api/teams
+        [HttpPost]
+        public async Task<IActionResult> AddTeam([FromBody] CreateTeamDTO dto)
+        {
+            
+            var result = await _teamService.AddTeamAsync(dto);
+
+            if (result)
+                return Ok(new { message = "The team was added successfully." });
+
+            return BadRequest(new { message = "An error occurred while adding the team" });
+        }
+
+        [Authorize(Roles = "Admin")]
+        // PUT: api/teams/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateTeam(int id, [FromBody] TeamDTO dto)
+        {
+            
+            if (id != dto.Id)
+                return BadRequest(new { message = "There is a difference in the team numbers" });
+
+            var result = await _teamService.UpdateTeamAsync(dto);
+            if (!result)
+                return NotFound(new { message = $"team with id : {id} Not available for editing" });
+
+            return Ok(new { message = "The team data was successfully modified" });
+        }
+        [Authorize(Roles = "Admin,Employee")]
+        // PATCH: api/teams/5/state
+        [HttpPatch("{id}/state")]
+        public async Task<IActionResult> UpdateTeamState(int id, [FromBody] UpdateTeamStateDTO dto)
+        {
+            if (id != dto.TeamId)
+                return BadRequest(new { message = "There is a difference in the team numbers" });
+
+            var result = await _teamService.UpdateTeamStateAsync(dto);
+            if (!result)
+                return NotFound(new { message = "The team is not available." });
+
+            return Ok(new { message = "The team status has been successfully changed." });
+        }
+        [Authorize(Roles = "Admin")]
+        // PATCH: api/teams/5/block
+        [HttpPatch("{id}/block")]
+        public async Task<IActionResult> BlockTeam(int id)
+        {
+            var result = await _teamService.BlockTeamAsync(id);
+            if (result)
+                return Ok(new { message = "Team was successfully blocked" });
+
+            return BadRequest(new { message = "The ban on the team failed" });
+        }
+        // PATCH: api/teams/assign-employee
+        [HttpPatch("assign-employee")]
+        [Authorize(Roles = "Admin")] 
+        public async Task<IActionResult> AssignEmployee([FromBody] AssignEmployeeToTeamDTO dto)
+        {
+            var result = await _teamService.AssignEmployeeToTeamAsync(dto);
+
+            if (result)
+                return Ok(new { message = "The employee was successfully added to the team" });
+
+            return BadRequest(new { message = "Failure in the connection process" });
+        }
+    }
+}
+
+/* ==========================================
+   File: UserController.cs
+========================================== */
+
+using Application.DTOs.LookupDtos;
+using Application.DTOs.UserDTOs;
+using Application.Services.UserServices;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+
+namespace Presentation.Controllers
+{
+    [Authorize()]
+    [Route("api/[controller]")]
+    [ApiController]
+    public class UserController : ControllerBase
+    {
+        private readonly IUserService _userService;       
+        public UserController(IUserService userService)
+        {
+            _userService = userService;
+        }
+
+        [Authorize(Roles ="User")]
+        [HttpPatch("update-fcm-token")] 
+        public async Task<IActionResult> UpdateFcmToken([FromBody] UpdateFcmTokenDTO dto)
+        {
+            
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (userIdClaim == null)
+                return Unauthorized("User identity not found in token.");
+
+            if (!int.TryParse(userIdClaim.Value, out int userId))
+                return BadRequest("Invalid user ID format in token.");
+
+            
+            if (string.IsNullOrWhiteSpace(dto.Token))
+                return BadRequest("FCM Token is required and cannot be empty.");
+
+           
+            var result = await _userService.UpdateFcmTokenAsync(userId, dto.Token);
+
+            if (!result)
+                return NotFound(new { message = "User not found or token update failed." });
+
+            return Ok(new { message = "FCM Token updated successfully" });
+        }
+
+        [Authorize(Roles = "User")]
+        [HttpPatch("toggle-notifications")]
+        public async Task<IActionResult> ToggleNotifications(NotificationToggleDto dto) {
+            var userCard = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userCard == null || !int.TryParse(userCard.Value, out int userId)) {
+                return Unauthorized("You cannot do this");
+            }           
+            var result =await  _userService.ToggleNotificationsAsync(userId, dto);
+            if(!result)
+                return BadRequest("Your request has not been processed");
+            return Ok("The notification status has changed.");
+        }
+        [Authorize(Roles ="User")]
+        [HttpPatch("toggle-Volunteer")]
+        public async Task<IActionResult> ToggleVolunter([FromBody] ToggleDto dto) {
+            var userCard = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userCard == null || !int.TryParse(userCard.Value,out int userId)) return Unauthorized("Unauthorized action");
+            var result = await _userService.ToggleVolunteerAsync(userId, dto);
+            if (!result)
+                return BadRequest("The request was not fulfilled.");
+            return Ok("The request was fulfilled");
+
+        }
+        [Authorize(Roles ="Admin,Employee")]
+        [HttpPatch("{userId}/block")]
+        public async Task<IActionResult> BlockUser(int userId) {
+            var result = await _userService.BlokUserAsync(userId);
+            if (!result) return BadRequest("The request was not fulfilled.");
+            return Ok("The user has been blocked.");
+        }
+        [Authorize(Roles = "Admin,Employee")]
+        [HttpPatch("{userId}/Unblock")]
+        public async Task<IActionResult> UnBlockUser(int userId) {
+            var result = await _userService.UnBlokUserAsync(userId);
+            if (!result) return BadRequest("The request was not fulfilled.");
+            return Ok("The user has been blocked.");
+        }
+
+        [Authorize(Roles ="Admin,Employee")]
+        [HttpGet("All")]
+        public async Task<ActionResult<IEnumerable<UserProfileResponseDto>>> All([FromQuery] int page, [FromQuery] int size) {
+            var users = await _userService.GetAllUsersAsync(page, size);
+            if (users == null) return NotFound("No Users");
+            return Ok(users);
+        }
+        [Authorize(Roles = "Admin,Employee")]
+        [HttpGet("InCity")]
+        public async Task<ActionResult<IEnumerable<UserProfileResponseDto>>> CityUsers([FromQuery] int page, [FromQuery] int size) {
+            var cityIdClaim = User.FindFirstValue("cityId");
+            if (string.IsNullOrEmpty(cityIdClaim) || !int.TryParse(cityIdClaim, out int cityId))
+                return BadRequest("You cannot do this");
+
+            var users = await _userService.GetAllUsersAsync(page, size,cityId);           
+            return Ok(users);
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<UserProfileResponseDto>> UserData() {
+            var userCard = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userCard == null || !int.TryParse(userCard, out int userId)) return NotFound("not valid user");
+
+            var result = await _userService.GetUserProfile(userId);
+            if (result == null) return NotFound("not valid user");
+            return Ok(result);
+
+        }
+
+        [HttpPut("UserData")]
+        public async Task<IActionResult> UpdateUserData([FromBody] UpdateUserInfoDTO dto) {
+            var userCard = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userCard == null || !int.TryParse(userCard, out int userId)) return NotFound("not valid user");
+            if (dto == null) return BadRequest("Enter Valid data");
+
+            var result = await _userService.UpdateUserProfile(userId, dto);
+            if (!result) return BadRequest("The user data has not changed.");
+            return Ok("The user data has  changed.");
+
+        }
+
+        
+
+
+    }
+}
+
+
+/* ==========================================
+   File: VolunteerController.cs
+========================================== */
+
+using Application.DTOs.VolunteerDTOs;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using Application.Services.NotificationServices;
+using Application.DTOs;
+
+namespace SReport.Api.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    [Authorize] 
+    public class VolunteerController : ControllerBase
+    {
+        private readonly IVolunteerService _volunteerService;
+
+        public VolunteerController(IVolunteerService volunteerService)
+        {
+            _volunteerService = volunteerService;
+        }
+
+        
+        [Authorize(Roles ="User")]
+        [HttpGet("nearby")]
+        public async Task<ActionResult<IEnumerable<NearbyMissionResponseDto>>> GetNearbyMissions([FromQuery] int cityId, [FromQuery] decimal lat, [FromQuery] decimal lng)
+        {
+            var reports = await _volunteerService.GetNearbyMissions(cityId, lat, lng);
+            return Ok(reports);
+        }
+
+        // 2. قبول البلاغ (بياخد رقم البلاغ من الـ URL، ورقم المتطوع من الـ Token)
+        [HttpPost("accept/{reportId}")]
+        public async Task<IActionResult> AcceptMission(int reportId)
+        {
+            
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int volunteerId))
+                return Unauthorized(new { message = "Invalid Token" });
+
+            var result = await _volunteerService.AcceptMission(reportId, volunteerId);
+
+            return Ok(new { message = "The task has been successfully accepted, it is being worked on!" });
+        }
+
+        // 3. إنهاء البلاغ بنجاح
+        [HttpPost("complete/{reportId}")]
+        public async Task<IActionResult> CompleteMission(int reportId)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int volunteerId))
+                return Unauthorized(new { message = "Invalid Token" });
+
+            var result = await _volunteerService.CompleteMission(reportId, volunteerId);
+            if (!result)
+                return BadRequest(new { message = "Failed to complete the task, make sure it was accepted beforehand." });
+
+            return Ok(new { message = "The task has been completed and I successfully received the points!" });
+        }
+
+        
+        [HttpGet("leaderboard")]
+        public async Task<ActionResult<IEnumerable< LeaderboardDto>>> GetLeaderboard()
+        {
+            var topVolunteers = await _volunteerService.GetTopVolunteers();
+            return Ok(topVolunteers);
+        }
+
+        // 5. جلب بروفايل المتطوع نفسه
+        [HttpGet("profile")]
+        public async Task<ActionResult<VolunteerProfileDto>> GetProfile()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int volunteerId))
+                return Unauthorized(new { message = "Invalid Token" });
+
+            var profile = await _volunteerService.GetVolunteerProfile(volunteerId);
+            return Ok(profile);
+        }
+
+        //-----------------------------------
+        
+        [HttpPost("cancel/{reportId}")]
+        public async Task<IActionResult> CancelMission(int reportId)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int volunteerId))
+                return Unauthorized(new { message = "Invalid Token" });
+
+            var result = await _volunteerService.CancelMission(reportId, volunteerId);
+            if (!result)
+                return BadRequest(new { message = "You cannot withdraw from this task, make sure you have accepted it first." });
+
+            return Ok(new { message = "The withdrawal from the task was successful, and it will be assigned to another volunteer." });
+        }
+
+        
+        [HttpGet("current")]
+        public async Task<ActionResult<CurrentMissionDto>> GetCurrentMission()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int volunteerId))
+                return Unauthorized(new { message = "Invalid Token" });
+
+            var currentMission = await _volunteerService.GetCurrentMission(volunteerId);
+
+            
+            if (currentMission == null)
+                return NoContent();
+
+            return Ok(currentMission);
+        }
+
+        
+        [HttpGet("history")]
+        public async Task<ActionResult<IEnumerable<MissionHistoryDto>>> GetHistory()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int volunteerId))
+                return Unauthorized(new { message = "Invalid Token" });
+
+            var history = await _volunteerService.GetVolunteerHistory(volunteerId);
+            return Ok(history);
+        }
+    }
+}
+
+/* ==========================================
+   File: ExceptionMiddleware.cs
+========================================== */
+
+using Domain.Exceptions;
+using System.Net;
+using System.Text.Json;
+
+namespace SReport.Api.Middlewares
+{
+    public class ExceptionMiddleware
+    {
+        private readonly RequestDelegate _next;
+        private readonly ILogger<ExceptionMiddleware> _logger;
+        private readonly IHostEnvironment _env;
+
+        public ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger, IHostEnvironment env)
+        {
+            _next = next;
+            _logger = logger;
+            _env = env;
+        }
+
+        public async Task InvokeAsync(HttpContext context)
+        {
+            try
+            {
+                // لو الريكويست سليم، كمل طريقك عادي
+                await _next(context);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                context.Response.ContentType = "application/json";
+
+                // القاموس السحري
+                var statusCodesMapping = new Dictionary<Type, int>
+                {
+                    { typeof(UnauthorizedAccessException), StatusCodes.Status401Unauthorized },
+                    { typeof(KeyNotFoundException), StatusCodes.Status404NotFound },
+                    { typeof(ArgumentException), StatusCodes.Status400BadRequest },
+                    { typeof(ArgumentNullException), StatusCodes.Status400BadRequest },
+                    { typeof(InvalidOperationException), StatusCodes.Status400BadRequest },
+                    { typeof(Microsoft.EntityFrameworkCore.DbUpdateException), StatusCodes.Status409Conflict },
+                    { typeof(NotFoundException), StatusCodes.Status404NotFound}
+                };
+
+                // لو الإيرور متسجل هياخد رقمه، لو مش متسجل هياخد 500
+                int finalStatusCode = statusCodesMapping.ContainsKey(ex.GetType())
+                    ? statusCodesMapping[ex.GetType()]
+                    : StatusCodes.Status500InternalServerError;
+
+                context.Response.StatusCode = finalStatusCode;
+
+                // الرسالة: لو 500 وبرودكشن هنخفيها، غير كده هنرجع رسالتك اللي إنت كاتبها
+                string finalMessage = finalStatusCode == 500 && !_env.IsDevelopment()
+                    ? "حدث خطأ داخلي في الخادم، جاري العمل عليه."
+                    : ex.Message;
+
+                var response = new { StatusCode = finalStatusCode, Message = finalMessage };
+
+                var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+                await context.Response.WriteAsync(JsonSerializer.Serialize(response, options));
+            }
+        }
+    }
+}
+
+/* ==========================================
+   File: .NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+========================================== */
+
+// <autogenerated />
+using System;
+using System.Reflection;
+[assembly: global::System.Runtime.Versioning.TargetFrameworkAttribute(".NETCoreApp,Version=v8.0", FrameworkDisplayName = ".NET 8.0")]
+
+/* ==========================================
+   File: Presentation.AssemblyInfo.cs
+========================================== */
+
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//     Runtime Version:4.0.30319.42000
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute("704e24a0-315b-4988-a82c-c3d3f1a28284")]
+[assembly: System.Reflection.AssemblyCompanyAttribute("Presentation")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+77983fa26bfe72ffd4e1240cd6fbe52fe9967b5b")]
+[assembly: System.Reflection.AssemblyProductAttribute("Presentation")]
+[assembly: System.Reflection.AssemblyTitleAttribute("Presentation")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+/* ==========================================
+   File: Presentation.GlobalUsings.g.cs
+========================================== */
+
+// <auto-generated/>
+global using global::Microsoft.AspNetCore.Builder;
+global using global::Microsoft.AspNetCore.Hosting;
+global using global::Microsoft.AspNetCore.Http;
+global using global::Microsoft.AspNetCore.Routing;
+global using global::Microsoft.Extensions.Configuration;
+global using global::Microsoft.Extensions.DependencyInjection;
+global using global::Microsoft.Extensions.Hosting;
+global using global::Microsoft.Extensions.Logging;
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.IO;
+global using global::System.Linq;
+global using global::System.Net.Http;
+global using global::System.Net.Http.Json;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+
+/* ==========================================
+   File: Presentation.MvcApplicationPartsAssemblyInfo.cs
+========================================== */
+
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//     Runtime Version:4.0.30319.42000
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: Microsoft.AspNetCore.Mvc.ApplicationParts.ApplicationPartAttribute("Swashbuckle.AspNetCore.SwaggerGen")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+/* ==========================================
+   File: .NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+========================================== */
+
+// <autogenerated />
+using System;
+using System.Reflection;
+[assembly: global::System.Runtime.Versioning.TargetFrameworkAttribute(".NETCoreApp,Version=v8.0", FrameworkDisplayName = ".NET 8.0")]
+
+/* ==========================================
+   File: Presentation.AssemblyInfo.cs
+========================================== */
+
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//     Runtime Version:4.0.30319.42000
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute("704e24a0-315b-4988-a82c-c3d3f1a28284")]
+[assembly: System.Reflection.AssemblyCompanyAttribute("Presentation")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+77983fa26bfe72ffd4e1240cd6fbe52fe9967b5b")]
+[assembly: System.Reflection.AssemblyProductAttribute("Presentation")]
+[assembly: System.Reflection.AssemblyTitleAttribute("Presentation")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+/* ==========================================
+   File: Presentation.GlobalUsings.g.cs
+========================================== */
+
+// <auto-generated/>
+global using global::Microsoft.AspNetCore.Builder;
+global using global::Microsoft.AspNetCore.Hosting;
+global using global::Microsoft.AspNetCore.Http;
+global using global::Microsoft.AspNetCore.Routing;
+global using global::Microsoft.Extensions.Configuration;
+global using global::Microsoft.Extensions.DependencyInjection;
+global using global::Microsoft.Extensions.Hosting;
+global using global::Microsoft.Extensions.Logging;
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.IO;
+global using global::System.Linq;
+global using global::System.Net.Http;
+global using global::System.Net.Http.Json;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+
+/* ==========================================
+   File: Presentation.MvcApplicationPartsAssemblyInfo.cs
+========================================== */
+
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//     Runtime Version:4.0.30319.42000
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: Microsoft.AspNetCore.Mvc.ApplicationParts.ApplicationPartAttribute("Swashbuckle.AspNetCore.SwaggerGen")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+

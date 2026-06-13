@@ -1,6 +1,7 @@
 ﻿using Application.Constants;
 using Application.DTOs;
 using Application.DTOs.NotficationDTOs;
+using Application.DTOs.ReportDTOs;
 using Application.DTOs.VolunteerDTOs;
 using Application.Services.NotificationServices;
 using Application.Services.ReportServices;
@@ -28,7 +29,7 @@ public class VolunteerService : IVolunteerService
     public async Task<List<NearbyMissionResponseDto>> GetNearbyMissions(int cityId, decimal userLat, decimal userLng)
     {
         var availableReports = await _uow.ReportsRepo.GetAllAsync(r =>
-            r.CityId == cityId && r.State ==ReportStatus.Pending);
+            r.CityId == cityId && r.State ==ReportStatus.Pending, "Medias");
 
         var nearbyReports = new List<NearbyMissionResponseDto>();
 
@@ -36,8 +37,8 @@ public class VolunteerService : IVolunteerService
         {
             decimal distance = CalculateDistance(userLat, userLng, report.Latitude, report.Longitude);
 
-            // لو المسافة أقل من أو تساوي 3000 متر (3 كيلو)
-            if (distance <= 3000)
+            // لو المسافة أقل من أو تساوي 10000 متر (10 كيلو)
+            if (distance <= 10000)
             {
                 // بنعمل Mapping للـ DTO
                 nearbyReports.Add(new NearbyMissionResponseDto
@@ -49,7 +50,12 @@ public class VolunteerService : IVolunteerService
                     Longitude = report.Longitude,
                     DistanceInMeters = Math.Round(distance, 2), // قربناها لرقمين عشريين عشان الشكل
                     Status = report.State,
-                    CreatedAt = report.Date // لو عندك الخاصية دي في الـ Report
+                    CreatedAt = report.Date, // لو عندك الخاصية دي في الـ Report
+                      AttachedMedia = report.Medias.Select(m => new MediaResponseDto()
+                      {
+                          FileURL = m.FilePath,
+                          MediaType = m.Type.ToString()
+                      }).ToList()
                 });
             }
         }

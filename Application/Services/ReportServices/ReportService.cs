@@ -84,7 +84,7 @@ namespace Application.Services.ReportServices
                     await _notificationService.SendSilentMissionNotification(report);
 
                     // 1. حالة وجود صور
-                    if (report.Medias.Any(m => m.Type == MediaType.Image) && report.Type == "other")
+                    if (report.Medias.Any(m => m.Type == MediaType.Image))
                     {
                         var imagePaths = report.Medias
                             .Where(m => m.Type == MediaType.Image)
@@ -96,6 +96,8 @@ namespace Application.Services.ReportServices
                             try
                             {
                                 await _aiService.AnalyzeByImageAsync(report.Id, imagePaths);
+                                await _hubContext.Clients.Group(report.CityId.ToString())
+                                    .SendAsync("RefreshReports");
                             }
                             catch (Exception ex)
                             {
@@ -105,13 +107,15 @@ namespace Application.Services.ReportServices
                     }
 
                     // 2. حالة وجود صوت (عملناها في الخلفية هي كمان عشان الموبايل ميهنجش)
-                    else if (report.Type == "other")
+                    else
                     {
                         _ = Task.Run(async () =>
                         {
                             try
                             {
                                 await _aiService.AnalyzeByTextAndVoiceAsync(report.Id, report.Description, voiceUrl);
+                                await _hubContext.Clients.Group(report.CityId.ToString())
+                                 .SendAsync("RefreshReports");
                             }
                             catch (Exception ex)
                             {
@@ -183,7 +187,7 @@ namespace Application.Services.ReportServices
                 Description = report.Description,
                 ReportState = report.State,
                 IsValid = report.IsValid,
-                ReportType = report.ReportAnalysis?.ReportType,
+                ReportType = report?.Type,
                 Recommendations = report.ReportAnalysis?.Recomendations,
                 ConfidenceScore= report.ReportAnalysis?.ConfidenceScore,
                 ReporterName = $"{report.User.FName} {report.User.SName}",

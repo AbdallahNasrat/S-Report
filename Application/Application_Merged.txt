@@ -1,0 +1,2758 @@
+﻿
+/* ==========================================
+   File: AppRoles.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.Constants
+{
+    public static class AppRoles
+    {
+        public const int Admin = 1;
+        public const int Employee = 2;
+        public const int User = 3;
+    };
+}
+
+/* ==========================================
+   File: DependencyInjection.cs
+========================================== */
+
+using Application.Services.AdminServices;
+using Application.Services.EmployeeServices;
+using Application.Services.GeneralServices;
+using Application.Services.ReportServices;
+using Application.Services.TeamService;
+using Application.Services.UserServices;
+using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DI
+{
+    public static class DependencyInjection
+    {
+        public static IServiceCollection AddApplicationService(this IServiceCollection services) {
+            services.AddScoped<IReportService, ReportService>();
+            services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IAdminService, AdminService>();
+            services.AddScoped<IEmployeeService, EmployeeService>();
+            services.AddScoped<ILookupsService, LookupService>();
+            services.AddScoped<ITeamService, TeamService>();
+            services.AddScoped<IVolunteerService, VolunteerService>();
+
+
+            return services;
+
+        }
+    }
+}
+
+/* ==========================================
+   File: NearbyMissionResponseDto.cs
+========================================== */
+
+using Domain.Enums;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DTOs
+{
+    public class NearbyMissionResponseDto
+    {
+        public int ReportId { get; set; }
+        public string Description { get; set; } // أو العنوان بتاع البلاغ
+        public decimal Latitude { get; set; }
+        public decimal Longitude { get; set; }
+        public decimal DistanceInMeters { get; set; } // هدية لبتاع فلاتر عشان يعرضها
+        public ReportStatus Status { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+}
+
+/* ==========================================
+   File: EmployeeDTO.cs
+========================================== */
+
+using Application.Constants;
+using Domain.Enums;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DTOs.EmployeeDTOs
+{
+    public class EmployeeDTO
+    {
+        public int EmployeeId { get; set; }
+        public string NationalId { get; set; }
+        public string FirstName { get; set; }
+        public string SecondName { get; set; }
+        public string HomeAddress { get; set; }
+        public string Email { get; set; }
+        public int? RoleId { get; set; }
+        public int Salary { get; set; }
+        public string Phone { get; set; }
+        public Genders Gender { get; set; }
+        public DateTime Birthdate { get; set; }
+        public int CityId { get; set; }
+        public int? TeamId { get; set; }
+
+    }
+}
+
+/* ==========================================
+   File: RegisterEmployeeDto.cs
+========================================== */
+
+using Domain.Enums;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DTOs.EmployeeDTOs
+{
+    public class RegisterEmployeeDto
+    {
+        public string NationalId { get; set; }
+        public string FirstName { get; set; }
+        public string SecondName { get; set; }
+        public string HomeAddress { get; set; }
+        public string Email { get; set; }
+        public string Password { get; set; }
+        public int Salary { get; set; }
+        public string Phone { get; set; }
+        public Genders Gender { get; set; }
+        public DateTime Birthdate { get; set; }
+        public int CityId { get; set; }
+        public int TeamId { get; set; }
+    }
+}
+
+/* ==========================================
+   File: LookupDto.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DTOs.LookupDtos
+{
+    public class LookupDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+
+    }
+}
+
+/* ==========================================
+   File: ToggleDto.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DTOs.LookupDtos
+{
+    public class ToggleDto
+    {
+        public bool IsEnabled { get; set; }
+    }
+}
+
+/* ==========================================
+   File: AllNotificationsInSystemDto.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DTOs.NotficationDTOs
+{
+    public class AllNotificationsInSystemDto
+    {
+        [Required(ErrorMessage = "title is required")]
+        public string Title { get; set; }
+        public string? Body { get; set; }
+
+        [Required(ErrorMessage = "date is required")]
+        public DateTime date { get; set; }
+        public int? userId { get; set; }
+        public List<string>? cityName { get; set; }
+
+    }
+}
+
+/* ==========================================
+   File: CityNotificationDto.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DTOs.NotficationDTOs
+{
+    public class CityNotificationDto
+    {
+        [Required(ErrorMessage ="title is required")]
+        public string Title { get; set; }
+
+        public string? Body { get; set; }
+
+        [Required(ErrorMessage = "date is required")]
+        public DateTime date { get; set; }
+        public int? userId { get; set; }
+
+    }
+}
+
+/* ==========================================
+   File: MyNotificationDto.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DTOs.NotificationDTOs
+{
+    public class MyNotificationDto
+    {
+        public string Title { get; set; }
+        public string? Body { get; set; }
+        public DateTime date { get; set; }
+
+    }
+}
+
+/* ==========================================
+   File: SubmaitCityNotificationDto.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DTOs.NotficationDTOs
+{
+    public class SubmaitCityNotificationDto
+    {
+        [Required(ErrorMessage = "title is required")]
+        public string Title { get; set; }
+        public string? Body { get; set; }
+        [Required(ErrorMessage = "CityIDs is required")]
+        public List<int> CityIDs { get; set; }
+    }
+}
+
+/* ==========================================
+   File: SubmitNotificationDto.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DTOs.NotficationDTOs
+{
+    public class SubmitNotificationDto
+    {
+        public string Title { get; set; }
+        public string? Body { get; set; }
+        public int? UserId { get; set; }        
+    }
+}
+
+/* ==========================================
+   File: AiDTO.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DTOs.ReportDTOs
+{
+    public class AiDTO
+    {
+        public string? Type { get; set; }
+        public string? Priority { get; set; }
+        public string? Recommendations { get; set; }
+        public double? ConfidenceScore { get; set; }
+
+
+    }
+}
+
+/* ==========================================
+   File: AIResponseDto.cs
+========================================== */
+
+using System.Text.Json.Serialization;
+
+public class AIResponseDto
+{
+    [JsonPropertyName("batch_results")]
+    public List<BatchResult> BatchResults { get; set; } = new();
+}
+
+public class BatchResult
+{
+    [JsonPropertyName("type")]
+    public string Type { get; set; } = string.Empty;
+
+    [JsonPropertyName("priority")]
+    public string Priority { get; set; } = string.Empty;
+
+    [JsonPropertyName("recommendation")]
+    public Recommendation Recommendation { get; set; } = new();
+
+    [JsonPropertyName("visual_analysis")]
+    public string? VisualAnalysisBase64 { get; set; } // الصورة المرسومة (Base64)
+}
+
+public class Recommendation
+{
+    [JsonPropertyName("units")]
+    public Dictionary<string, int> Units { get; set; } = new();
+
+    [JsonPropertyName("action_plan")]
+    public string ActionPlan { get; set; } = string.Empty;
+}
+
+/* ==========================================
+   File: CreateReportDTO.cs
+========================================== */
+
+using Microsoft.AspNetCore.Http;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DTOs.ReportDTOs
+{
+    public class CreateReportDTO
+    {
+        [Required(ErrorMessage ="Description Is Required")]
+        public string Description { get; set; }
+
+        [Required(ErrorMessage = "Latitude Is Required")]
+        public decimal Latitude { get; set; }
+
+        [Required(ErrorMessage = "Longitude Is Required")]
+
+        public decimal Longitude { get; set; }
+
+        [Required(ErrorMessage ="Description Is Required")]
+
+        public string? ReportType { get; set; }
+        public List<IFormFile>? ImageFiles { get; set; }
+        public IFormFile? VoiceFile { get; set; }
+
+        [Required(ErrorMessage = "CityId Is Required")]
+        public int CityId { get; set; }
+
+    }
+}   
+
+/* ==========================================
+   File: FailedReportInfo.cs
+========================================== */
+
+public class FailedReportInfo
+{
+    public string Description { get; set; }
+    public string Error { get; set; }      
+    public DateTime Date { get; set; }      
+}
+
+/* ==========================================
+   File: MediaResponseDto.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DTOs.ReportDTOs
+{
+    public class MediaResponseDto
+    {
+        public string FileURL { get; set; }
+        public string MediaType { get; set; }
+    }
+}
+
+/* ==========================================
+   File: ReportDetailsDto.cs
+========================================== */
+
+using Domain.Enums;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DTOs.ReportDTOs
+{
+    public class ReportDetailsDto
+    {
+        public int ReportId { get; set; }
+        public string Description { get; set; }
+        public DateTime Date { get; set; }
+        public decimal Latitude { get; set; }
+        public decimal Longitude { get; set; }
+        public string? Priority { get; set; }
+        public string? ReportType { get; set; }
+        public ReportStatus ReportState { get; set; }
+        public bool? IsValid { get; set; }
+        public string? Recommendations { get; set; }
+        public double? ConfidenceScore { get; set; }
+        public string ReporterName { get; set; }
+        public int ReporterId { get; set; }
+        public int CityId { get; set; }
+        public string TeamName { get; set; }
+        public List<MediaResponseDto> AttachedMedia { get; set; }
+
+
+    }
+}
+
+/* ==========================================
+   File: ReportSummaryDto.cs
+========================================== */
+
+using Domain.Enums;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DTOs.ReportDTOs
+{
+    public class ReportSummaryDto
+    {
+        public int ReportId { get; set; }
+        public int UserId { get; set; }
+        public string Description { get; set; }
+        public DateTime Date { get; set; }
+        public decimal Latitude { get; set; }
+        public decimal Longitude { get; set; }
+        public ReportStatus State { get; set; }
+        public string? ReportType { get; set; }
+        public List<MediaResponseDto> AttachedMedia { get; set; }
+
+    }
+}
+
+/* ==========================================
+   File: ReportTypeDto.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DTOs.ReportDTOs
+{
+    public class ReportTypeDto
+    {
+        public int  categoryId { get; set; }
+    }
+}
+
+/* ==========================================
+   File: SyncResultDto.cs
+========================================== */
+
+public class SyncResultDto
+{
+    public int SuccessCount { get; set; }
+    public int FailureCount { get; set; }
+    public List<FailedReportInfo> FailedReports { get; set; } = new();
+}
+
+/* ==========================================
+   File: UpdateReportStatusDto.cs
+========================================== */
+
+using Domain.Enums;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DTOs.ReportDTOs
+{
+    public class UpdateReportStatusDto
+    {
+        [Required]
+        public ReportStatus Status { get; set; }
+    }
+}
+
+/* ==========================================
+   File: VoiceTextAiResponseDto.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Text.Json.Serialization; 
+
+
+namespace Application.DTOs.ReportDTOs
+{
+
+    public class VoiceTextAiResponseDto
+    {
+        [JsonPropertyName("category")]
+        public string Category { get; set; }
+
+        [JsonPropertyName("priority")]
+        public string Priority { get; set; }
+
+        [JsonPropertyName("text")]
+        public string Text { get; set; }
+
+        [JsonPropertyName("final_text")]
+        public string Final_Text { get; set; }
+    }
+    public class VoiceTextAiWrapperDto
+    {
+        [JsonPropertyName("status")]
+        public string Status { get; set; }
+
+        [JsonPropertyName("result")]
+        public VoiceTextAiResponseDto Result { get; set; } // هنا الداتا الحقيقية
+    }
+}
+
+/* ==========================================
+   File: AssignEmployeeToTeamDTO.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DTOs.TeamsDTOs
+{
+    public class AssignEmployeeToTeamDTO
+    {
+        [Required]
+        public int EmployeeId { get; set; }
+
+        [Required]
+        public int TeamId { get; set; }
+    }
+}
+
+/* ==========================================
+   File: AssignTeamDto.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DTOs.TeamsDTOs
+{
+    public class AssignTeamDto
+    {
+        [Required]
+        public int TeamId { get; set; }
+    }
+}
+
+/* ==========================================
+   File: CreateTeamDTO.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DTOs.TeamsDTOs
+{
+    public class CreateTeamDTO
+    {
+        [Required]
+        public string Name { get; set; }
+        [Required]
+        public int CityId { get; set; }
+    }
+}
+
+/* ==========================================
+   File: TeamDTO.cs
+========================================== */
+
+using Domain.Enums;
+
+
+namespace Application.DTOs.TeamsDTOs
+{
+    public class TeamDTO
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public int CityId { get; set; }
+        public TeamState State { get; set; }
+
+    }
+}
+
+/* ==========================================
+   File: UpdateTeamStateDTO.cs
+========================================== */
+
+using Domain.Enums;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DTOs.TeamsDTOs
+{
+    public class UpdateTeamStateDTO
+    {
+        [Required]
+        public int TeamId { get; set; }
+        [Required]
+        public TeamState State { get; set; }
+
+    }
+}
+
+/* ==========================================
+   File: LoginDTO.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DTOs.UserDTOs
+{
+    public class LoginDTO
+    {
+        [Required(ErrorMessage ="Email Is Required")]
+        [EmailAddress]
+        public string Email { get; set; }
+        [Required(ErrorMessage = "Password Is Required")]
+        public string Password { get; set; }
+
+    }
+}
+
+/* ==========================================
+   File: LoginResponseDTO.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DTOs.UserDTOs
+{
+    public class LoginResponseDTO
+    {
+        public string Token { get; set; }
+        public string FirstName { get; set; }
+        public string Role { get; set; }
+        public int UserId { get; set; }
+        public int CityId { get; set; }
+        public int? EmployeeId { get; set; }
+    }
+}
+
+/* ==========================================
+   File: NotificationToggleDto.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DTOs.UserDTOs
+{
+    public class NotificationToggleDto
+    {
+        public bool IsEnabled { get; set; }
+    }
+}
+
+/* ==========================================
+   File: RegisterUserDTO.cs
+========================================== */
+
+using Domain.Enums;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DTOs.UserDTOs
+{
+    public class RegisterUserDto
+    {
+        [Required(ErrorMessage = "NationalId Is Required")]
+        [Length(14,14,ErrorMessage = "Enter a valid NationalID")]
+        public string NationalId { get; set; }
+
+        [Required(ErrorMessage = "FirstName Is Required")]
+        public string FirstName { get; set; }
+
+        [Required(ErrorMessage = "SecondName Is Required")]
+        public string SecondName { get; set; }
+
+        [Required(ErrorMessage = "HomeAddress Is Required")]
+        public string HomeAddress { get; set; }
+
+        [Required(ErrorMessage = "Email Is Required")]
+        [EmailAddress(ErrorMessage ="Enter a valid Email Address")]
+        public string Email { get; set; }
+
+        [Required(ErrorMessage = "Password Is Required")]
+        [Length(8,20,ErrorMessage = "Enter a valid password that is at least 8 characters and no more than 20. ") ]
+        public string Password { get; set; }
+
+        [Required(ErrorMessage = "Phone Is Required")]
+        [Length(11, 11, ErrorMessage = "Enter a valid Phone Number")]
+        public string Phone { get; set; }
+
+        [Required(ErrorMessage = "Gender Is Required")]
+        public Genders Gender { get; set; }
+
+        [Required(ErrorMessage = "Birthdate Is Required")]
+        public DateTime Birthdate { get; set; }
+
+        [Required(ErrorMessage = "Email Is Required")]
+        public bool Volunteer { get; set; } = true;
+
+        [Required(ErrorMessage = "CityId Is Required")]
+        public int CityId { get; set; }
+
+
+    }
+}
+
+/* ==========================================
+   File: RemoveUserDto.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DTOs.UserDTOs
+{
+    public class RemoveUserDto
+    {
+        public int Id { get; set; }
+    }
+}
+
+/* ==========================================
+   File: UpdateFcmTokenDTO.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DTOs.UserDTOs
+{
+    public class UpdateFcmTokenDTO
+    {
+        public string Token { get; set; }
+    }
+}
+
+/* ==========================================
+   File: UpdateUserInfoDTO.cs
+========================================== */
+
+using Domain.Enums;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DTOs.UserDTOs
+{
+    public class UpdateUserInfoDTO
+    {
+        [Required(ErrorMessage = "enter a first Name ")]
+        public string FirstName { get; set; }
+
+        [Required(ErrorMessage = "enter a Second Name ")]
+        public string SecondName { get; set; }
+        [Required(ErrorMessage = "enter a Home Address ")]
+
+        public string HomeAddress { get; set; }
+
+        [Required(ErrorMessage = "enter a Email ")]
+
+        public string Email { get; set; }
+
+        [Required(ErrorMessage = "enter a Password ")]
+        [Length(8,20,ErrorMessage = "Enter a valid password that is at least 8 characters and no more than 20. ")]
+        public string Password { get; set; }
+
+        [Required(ErrorMessage = "enter a Phone Number")]
+        [Length(11,11,ErrorMessage ="Enter a valid Phone Number")]
+        public string Phone { get; set; }
+
+        [Required(ErrorMessage = "enter a CityId ")]
+        public int CityId { get; set; }
+    }
+}
+
+/* ==========================================
+   File: UserProfileResponseDto.cs
+========================================== */
+
+using Domain.Enums;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DTOs.UserDTOs
+{
+    public class UserProfileResponseDto
+    {
+        public string FirstName { get; set; }
+        public string SecundName { get; set; }
+        public string Email { get; set; }
+        public string NationalId { get; set; }
+        public string Address { get; set; }
+        public string Phone { get; set; }
+        public Genders Gender { get; set; }
+        public bool Volunteer { get; set; }
+        public bool Notification { get; set; }
+        public DateTime Birthdate { get; set; }
+        public decimal Rate { get; set; }
+
+
+
+
+    }
+}
+
+/* ==========================================
+   File: CurrentMissionDto.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DTOs.VolunteerDTOs
+{
+    public class CurrentMissionDto
+    {
+        public int ReportId { get; set; }
+        public string Description { get; set; }
+        public decimal Latitude { get; set; }
+        public decimal Longitude { get; set; }
+        public string CityName { get; set; }
+        public DateTime AcceptedAt { get; set; }
+    }
+}
+
+/* ==========================================
+   File: LeaderboardDto.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DTOs.VolunteerDTOs
+{
+    public class LeaderboardDto
+    {
+        public string Name { get; set; }
+        public string? Avatar { get; set; }
+        public int TotalPoints { get; set; }
+    }
+}
+
+/* ==========================================
+   File: MissionHistoryDto.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DTOs.VolunteerDTOs
+{
+    public class MissionHistoryDto
+    {
+        public int ReportId { get; set; }
+        public string Description { get; set; }
+        public DateTime CompletedAt { get; set; } 
+        public int EarnedPoints { get; set; } 
+    }
+}
+
+/* ==========================================
+   File: VolunteerProfileDto.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.DTOs.VolunteerDTOs
+{
+    public class VolunteerProfileDto
+    {
+        public string Name { get; set; }
+        public string? Avatar { get; set; }
+        public int TotalPoints { get; set; }
+        public int CompletedMissionsCount { get; set; } // عدد البلاغات اللي خلصها
+
+        public List<string> EarnedAchievements { get; set; }
+    }
+}
+
+/* ==========================================
+   File: ReportHub.cs
+========================================== */
+
+using Microsoft.AspNetCore.SignalR;
+using System.Text.RegularExpressions;
+
+namespace SReport.Hubs
+{
+    public class ReportHub : Hub
+    {
+        // الفرونت إند هينادي الميثود دي ويبعت رقم المدينة
+        public async Task JoinCityGroup(string cityId)
+        {
+            // بنضيف الكونكشن بتاع اليوزر ده لجروب باسم المدينة
+            await Groups.AddToGroupAsync(Context.ConnectionId, cityId);
+        }
+
+        // يفضل دايماً تعمل ميثود للخروج عشان توفر موارد السيرفر
+        public async Task LeaveCityGroup(string cityId)
+        {
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, cityId);
+        }
+    }
+}
+
+/* ==========================================
+   File: .NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+========================================== */
+
+// <autogenerated />
+using System;
+using System.Reflection;
+[assembly: global::System.Runtime.Versioning.TargetFrameworkAttribute(".NETCoreApp,Version=v8.0", FrameworkDisplayName = ".NET 8.0")]
+
+/* ==========================================
+   File: Application.AssemblyInfo.cs
+========================================== */
+
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//     Runtime Version:4.0.30319.42000
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: System.Reflection.AssemblyCompanyAttribute("Application")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+77983fa26bfe72ffd4e1240cd6fbe52fe9967b5b")]
+[assembly: System.Reflection.AssemblyProductAttribute("Application")]
+[assembly: System.Reflection.AssemblyTitleAttribute("Application")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+/* ==========================================
+   File: Application.GlobalUsings.g.cs
+========================================== */
+
+// <auto-generated/>
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.IO;
+global using global::System.Linq;
+global using global::System.Net.Http;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+
+/* ==========================================
+   File: .NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+========================================== */
+
+// <autogenerated />
+using System;
+using System.Reflection;
+[assembly: global::System.Runtime.Versioning.TargetFrameworkAttribute(".NETCoreApp,Version=v8.0", FrameworkDisplayName = ".NET 8.0")]
+
+/* ==========================================
+   File: Application.AssemblyInfo.cs
+========================================== */
+
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//     Runtime Version:4.0.30319.42000
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: System.Reflection.AssemblyCompanyAttribute("Application")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+77983fa26bfe72ffd4e1240cd6fbe52fe9967b5b")]
+[assembly: System.Reflection.AssemblyProductAttribute("Application")]
+[assembly: System.Reflection.AssemblyTitleAttribute("Application")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+/* ==========================================
+   File: Application.GlobalUsings.g.cs
+========================================== */
+
+// <auto-generated/>
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.IO;
+global using global::System.Linq;
+global using global::System.Net.Http;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+
+/* ==========================================
+   File: IJwtProvider.cs
+========================================== */
+
+using Domain.Entites;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.SecurityService
+{
+    public interface IJwtProvider
+    {
+        string GenerateToken(User user, int? employeeId = null);
+    }
+}
+
+/* ==========================================
+   File: AdminService.cs
+========================================== */
+
+using Application.Constants;
+using Application.DTOs.EmployeeDTOs;
+using Application.Services.EmployeeServices;
+using Application.Services.UserServices;
+using Domain.Entites;
+using Domain.Interfaces.Repositories;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.Services.AdminServices
+{
+    public class AdminService : IAdminService
+    {
+        private readonly IUnitOfWork _uow;
+        private readonly IEmployeeService _employeeService;
+        public AdminService(IUnitOfWork uow ,IEmployeeService employeeService)
+        {
+            _uow = uow;
+            _employeeService  = employeeService;
+        }
+
+        public async Task<bool> AddAdminAsync(RegisterEmployeeDto dto)
+        {
+            var newAdmin = await _employeeService.RegisterEmployeeAsync(dto, AppRoles.Admin);
+            return newAdmin;
+        }
+
+        
+
+    }
+}
+
+/* ==========================================
+   File: IAdminService.cs
+========================================== */
+
+using Application.DTOs.EmployeeDTOs;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.Services.AdminServices
+{
+    public interface IAdminService
+    {
+        public Task<bool> AddAdminAsync(RegisterEmployeeDto dto);
+
+    }
+}
+
+/* ==========================================
+   File: IAiService.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.Services.AiServices
+{
+    public interface IAIService
+    {
+
+        Task AnalyzeByImageAsync(int reportId, List<string> imageUrls);
+
+
+        Task AnalyzeByTextAndVoiceAsync(int reportId, string description, string? voiceUrl);
+    }
+}
+
+/* ==========================================
+   File: EmployeeService.cs
+========================================== */
+
+using Application.Constants;
+using Application.DTOs.EmployeeDTOs;
+using Application.DTOs.UserDTOs;
+using Domain.Entites;
+using Domain.Enums;
+using Domain.Interfaces.Repositories;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.Services.EmployeeServices
+{
+    public class EmployeeService : IEmployeeService
+    {
+        private readonly IUnitOfWork _uow;
+
+        public EmployeeService(IUnitOfWork uow )
+        {
+            _uow = uow;
+        }
+        private EmployeeDTO MapToDTO(Employee emp)
+        {
+            return new EmployeeDTO
+            {
+                EmployeeId = emp.Id,
+                FirstName = emp.User.FName,
+                SecondName = emp.User.SName,
+                CityId = emp.User.CityId,
+                Birthdate = emp.User.Birthdate,
+                NationalId = emp.User.NationalId,
+                Gender = emp.User.Gender,
+                Email = emp.User.Email,               
+                HomeAddress = emp.User.Address,
+                Phone = emp.User.Phone,
+                RoleId = emp.User.RoleId,
+                Salary = emp.Salary,
+                TeamId = emp.TeamId
+            };
+        }
+
+        public async Task<bool> EditEmployeeDataAsync(EmployeeDTO dto)
+        {
+            var existEmployee = await _uow.EmployeesRepo.GetEmployeeByIdAsync(dto.EmployeeId);
+            if (existEmployee == null) {
+                return false;
+            }
+            existEmployee.User.FName = dto.FirstName;
+            existEmployee.User.SName = dto.SecondName;
+            existEmployee.User.Address = dto.HomeAddress;
+            existEmployee.User.Phone = dto.Phone;
+            existEmployee.User.Email = dto.Email;
+            existEmployee.User.Birthdate = dto.Birthdate;
+            existEmployee.User.NationalId = dto.NationalId;
+            existEmployee.User.Gender = dto.Gender;
+            existEmployee.User.CityId = dto.CityId;
+            existEmployee.User.RoleId = dto.RoleId;
+
+            existEmployee.TeamId = dto.TeamId;
+            existEmployee.Salary = dto.Salary;
+
+            return await _uow.SaveChangesAsync() > 0 ;
+        }
+
+        public async Task<IEnumerable<EmployeeDTO>> GetAllEmployeesAsync(int? cityId = null)
+        {
+            var employees = await _uow.EmployeesRepo.GetAllEmployeesAsync(cityId);
+            if (employees == null) return null;
+            return employees.Select(emp => MapToDTO(emp));
+        }
+
+        public async Task<EmployeeDTO> GetEmployeeAsync(int id)
+        {
+            var emp = await _uow.EmployeesRepo.GetEmployeeByIdAsync(id);
+            if (emp == null) return null;
+            var result = new EmployeeDTO()
+            {
+                EmployeeId = emp.Id,
+                FirstName = emp.User.FName,
+                SecondName = emp.User.SName,
+                CityId = emp.User.CityId,
+                Birthdate = emp.User.Birthdate,
+                NationalId = emp.User.NationalId,
+                Gender = emp.User.Gender,
+                Email = emp.User.Email,
+                HomeAddress = emp.User.Address,
+                Phone = emp.User.Phone,
+                RoleId = emp.User.RoleId,
+
+                Salary = emp.Salary,
+                TeamId = emp.TeamId
+            };
+            return result;
+
+        }
+        public async Task<bool> RegisterEmployeeAsync(RegisterEmployeeDto dto, int role = 2)
+        {
+            User userCheck = await _uow.UsersRepo.GetUserByEmailAsync(dto.Email);
+            if (userCheck != null) throw new Exception("Email Address is exist");
+            userCheck = await _uow.UsersRepo.GetFirstOrDefaultAsync(u => u.NationalId == dto.NationalId);
+            if (userCheck != null) { throw new Exception("the National ID is used"); }
+            var user = new User
+            {
+                Email = dto.Email,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password), // hashing
+                NationalId = dto.NationalId,
+                FName = dto.FirstName,
+                SName = dto.SecondName,
+                Phone = dto.Phone,
+                CityId = dto.CityId,
+                Birthdate = dto.Birthdate,
+                RoleId = role, //employee
+                Volunteer = true,
+                Address = dto.HomeAddress,
+                Gender = dto.Gender,
+                EmployeeProfile = new Employee { Salary = dto.Salary, TeamId = dto.TeamId }
+            };
+            await _uow.UsersRepo.AddAsync(user);
+
+            return await _uow.SaveChangesAsync() > 0;
+        }
+    }
+}
+
+/* ==========================================
+   File: IEmployeeService.cs
+========================================== */
+
+using Application.DTOs.EmployeeDTOs;
+using Application.DTOs.UserDTOs;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.Services.EmployeeServices
+{
+    public interface IEmployeeService
+    {
+        public Task<bool> EditEmployeeDataAsync(EmployeeDTO dto);
+        public Task<EmployeeDTO> GetEmployeeAsync(int id);
+        public Task<IEnumerable<EmployeeDTO>> GetAllEmployeesAsync(int? cityId = null);
+        public Task<bool> RegisterEmployeeAsync(RegisterEmployeeDto dto, int role);
+
+
+    }
+}
+
+/* ==========================================
+   File: IFileService.cs
+========================================== */
+
+using Microsoft.AspNetCore.Http;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.Services.FileService
+{
+    public interface IFileService
+    {
+        Task<string> SaveReportMediaAsync(IFormFile file, string MediaType);
+        bool DeleteFile(string relativePath);
+    }
+}
+
+/* ==========================================
+   File: ILookupsService.cs
+========================================== */
+
+using Application.DTOs.LookupDtos;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.Services.GeneralServices
+{
+    public interface ILookupsService
+    {
+        public Task<IEnumerable<LookupDto>> GetCitiesAsync();
+    }
+}
+
+/* ==========================================
+   File: LookupService.cs
+========================================== */
+
+using Application.DTOs.LookupDtos;
+using Domain.Interfaces.Repositories;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.Services.GeneralServices
+{
+    public class LookupService : ILookupsService
+    {
+        private readonly IUnitOfWork _uow;
+        public LookupService(IUnitOfWork uow)
+        {
+            _uow = uow;
+        }
+        public async Task<IEnumerable<LookupDto>> GetCitiesAsync()
+        {
+            var cities = await _uow.CitiesRepo.GetAllAsync();
+            if (cities == null || !cities.Any())
+                throw new Exception("Cities cannot be loaded");
+
+            var result = cities.Select(c => new LookupDto()
+            {
+                Id = c.Id,
+                Name = c.Name
+            });
+            return result;
+        }
+             
+    }
+}
+
+
+/* ==========================================
+   File: INotificationService.cs
+========================================== */
+
+using Application.DTOs.NotficationDTOs;
+using Application.DTOs.NotificationDTOs;
+using Domain.Entites;
+
+namespace Application.Services.NotificationServices
+{
+    public interface INotificationService
+    {
+        public Task<bool> SendNotificationAsync(string deviceToken, string title, string body, Dictionary<string, string>? data = null);
+        public Task<bool> SendTopicNotificationAsync(string topic, string title, string body);
+
+        public Task<bool> SendNotificationToUser( SubmitNotificationDto dto, int? employeeId=null);
+        public Task<bool> SendNotificationToMultipleCities(int employeeId, SubmaitCityNotificationDto dto);
+        public Task<MyNotificationDto> GetNotificationById(int id);
+        public Task<IEnumerable<MyNotificationDto>>GetMyNotifications(int userId, int cityId);
+        public Task<IEnumerable<CityNotificationDto>> GetCityNotifications(int cityId);
+        public Task<IEnumerable<AllNotificationsInSystemDto>> GetAllNotifications(int page, int size);
+        public Task SendSilentMissionNotification(Report report);
+
+
+
+
+
+    }
+}
+
+/* ==========================================
+   File: IReportService.cs
+========================================== */
+
+using Application.DTOs.LookupDtos;
+using Application.DTOs.ReportDTOs;
+using Domain.Entites;
+using Domain.Enums;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.Services.ReportServices
+{
+    public  interface IReportService
+    {
+        public Task<bool> AddReportAsync(int userId, CreateReportDTO dto);
+        public Task<SyncResultDto> SyncOfflineReports(int userId,IEnumerable<CreateReportDTO> reports);
+
+        public Task<bool> DeleteReportAsync(int reportId);
+        public Task<bool> UpdateReportStatusAsync(int reportId, ReportStatus status);
+        public Task<IEnumerable<ReportSummaryDto>> GetMyReportsAsync(int userId, int pageNumber, int pageSize);
+        public Task<ReportDetailsDto> GetReportByIdAsync(int reportId, bool tracked = true);
+        public Task<ReportSummaryDto> GetReportSummaryByIdAsync(int reportId, bool tracked);
+        public Task<bool> AddAILayer(Report report);
+        public Task<bool> CancelReportAsync(int reportId);
+        public Task<bool> AssignTeamToReportAsync(int reportId, int teamId);
+        public Task<bool> ValidateReportAsync(int reportId, bool isValid);
+        public Task<IEnumerable<ReportDetailsDto>> GetFilteredReportsAsync( int pageNumber, int pageSize, bool excludeResolved, int? cityId = null);
+        public Task<bool> CorrectReportTypeAsync(int reportId , int categoryId);
+        public Task<IEnumerable<LookupDto>> GetCategories();
+    }
+}
+
+/* ==========================================
+   File: ReportService.cs
+========================================== */
+
+using Application.DTOs.LookupDtos;
+using Application.DTOs.ReportDTOs;
+using Application.Services.AiServices;
+using Application.Services.NotificationServices;
+using Application.Services.FileService;
+using Domain.Entites;
+using Domain.Enums;
+using Domain.Exceptions;
+using Domain.Interfaces.Repositories;
+using Microsoft.AspNetCore.SignalR;
+using SReport.Hubs;
+
+
+namespace Application.Services.ReportServices
+{
+    public class ReportService : IReportService
+    {
+        private readonly IUnitOfWork _uow;
+        private readonly IFileService _fileService;
+        private readonly IAIService _aiService;
+        private readonly INotificationService _notificationService;
+        private readonly IHubContext<ReportHub> _hubContext;
+        public ReportService(IUnitOfWork uow, IFileService fileService , IAIService aiService  , INotificationService NotificationService, IHubContext<ReportHub> hubContext) {
+            _uow = uow;
+            _fileService = fileService;
+            _aiService = aiService;
+            _notificationService = NotificationService;
+            _hubContext = hubContext;
+        }
+        public async Task<bool> AddAILayer(Report report)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<bool> AddReportAsync(int userId , CreateReportDTO dto)
+        {
+            var report = new Report()
+            {
+                Description = dto.Description,
+                Latitude = dto.Latitude,
+                Longitude = dto.Longitude,
+                CityId = dto.CityId,
+                UserId = userId,
+                Date = DateTime.UtcNow,
+                State = ReportStatus.Pending,
+                Medias = new List<Media>(),
+                Type = dto.ReportType
+            };
+
+            if (dto.ImageFiles != null && dto.ImageFiles.Count>0)
+            {
+                foreach (var image in dto.ImageFiles)
+                {
+                    var path = await _fileService.SaveReportMediaAsync(image, "images");
+                    report.Medias.Add(new Media
+                    {
+                        FilePath = path,
+                        Type = MediaType.Image
+                    });
+                }
+            }
+            string? voiceUrl = null;
+            
+            if (dto.VoiceFile != null) {
+                voiceUrl = await _fileService.SaveReportMediaAsync(dto.VoiceFile, "audio");
+                report.Medias.Add(new Media
+                {
+                    FilePath = voiceUrl,
+                    Type = MediaType.Audio
+                });
+            }
+            await _uow.ReportsRepo.AddAsync(report);
+            var result = await _uow.SaveChangesAsync() > 0;
+
+            if (result) // لو البلاغ اتسيف بنجاح في الداتابيز
+            {
+                try
+                {
+                    //SignalR
+                    await _hubContext.Clients.Group(report.CityId.ToString())
+                        .SendAsync("RefreshReports");
+
+                    //notification to volunteer
+                    await _notificationService.SendSilentMissionNotification(report);
+
+                    // 1. حالة وجود صور
+                    if (report.Medias.Any(m => m.Type == MediaType.Image) && report.Type == "other")
+                    {
+                        var imagePaths = report.Medias
+                            .Where(m => m.Type == MediaType.Image)
+                            .Select(m => m.FilePath).ToList();
+
+                        // تشغيل تحليل الصور في الخلفية
+                        _ = Task.Run(async () =>
+                        {
+                            try
+                            {
+                                await _aiService.AnalyzeByImageAsync(report.Id, imagePaths);
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Background AI Image Error: {ex.Message}");
+                            }
+                        }); 
+                    }
+
+                    // 2. حالة وجود صوت (عملناها في الخلفية هي كمان عشان الموبايل ميهنجش)
+                    else if (report.Type == "other")
+                    {
+                        _ = Task.Run(async () =>
+                        {
+                            try
+                            {
+                                await _aiService.AnalyzeByTextAndVoiceAsync(report.Id, report.Description, voiceUrl);
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Background AI Audio Error: {ex.Message}");
+                            }
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // الـ Catch الخارجي ده هيصطاد أي خطأ يحصل "قبل" ما الـ Task.Run تشتغل 
+                    // (مثلاً لو ضرب Error وهو بيعمل Select لمسارات الصور)
+                    Console.WriteLine($"AI Service Setup Error: {ex.Message}");
+                }
+            }
+
+            return true;
+        }
+        public async Task<SyncResultDto> SyncOfflineReports(int userId, IEnumerable<CreateReportDTO> reports)
+        {
+            var result = new SyncResultDto(); 
+
+            foreach (var reportDto in reports)
+            {
+                try
+                {
+                    
+                    var newReport = await AddReportAsync(userId, reportDto);
+
+                    result.SuccessCount++;
+                    //signalR
+                    await _hubContext.Clients.Group(reportDto.CityId.ToString())
+                        .SendAsync("RefreshReports");
+                }
+                catch (Exception ex)
+                {
+                
+                    result.FailedReports.Add(new FailedReportInfo
+                    {
+                        Description = reportDto.Description,
+                        Error = ex.Message
+                    });
+                    result.FailureCount++;
+                }
+            }
+            //SignalR
+            
+
+
+            return result;
+        }
+
+        public async Task<bool> DeleteReportAsync(int reportId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<IEnumerable<ReportDetailsDto>> GetFilteredReportsAsync( int pageNumber, int pageSize, bool excludeResolved, int? cityId = null)
+        {
+            var reports = await _uow.ReportsRepo.GetFilteredReportsAsync( pageNumber, pageSize, excludeResolved, cityId);
+
+            var result = reports.Select(report => new ReportDetailsDto
+            {
+                ReportId = report.Id,
+                Date = report.Date,
+                Latitude = report.Latitude,
+                Longitude = report.Longitude,
+                Priority = report.ReportAnalysis?.ReportPriority,
+                Description = report.Description,
+                ReportState = report.State,
+                IsValid = report.IsValid,
+                ReportType = report.ReportAnalysis?.ReportType,
+                Recommendations = report.ReportAnalysis?.Recomendations,
+                ConfidenceScore= report.ReportAnalysis?.ConfidenceScore,
+                ReporterName = $"{report.User.FName} {report.User.SName}",
+                ReporterId = report.User.Id,
+                CityId = report.CityId,
+                TeamName = report.Team?.Name ?? "No Team",
+                AttachedMedia = report.Medias.Select(m => new MediaResponseDto
+                {
+                    FileURL = m.FilePath,
+                    MediaType = m.Type.ToString()
+                }).ToList()
+            }).ToList();
+            return result;
+        }
+
+
+        public async Task<IEnumerable<ReportSummaryDto>> GetMyReportsAsync(int userId, int pageNumber, int pageSize)
+        {
+            var MyReports = await _uow.ReportsRepo.GetReportsByUserIdAsync(userId, pageNumber, pageSize);
+            var result = MyReports.Select(r => new ReportSummaryDto()
+            {
+                ReportId = r.Id,
+                Description = r.Description,
+                Date = r.Date,
+                Latitude = r.Latitude,
+                Longitude = r.Longitude,
+                State = r.State,
+                ReportType = r.Type,
+                AttachedMedia = r.Medias.Select(m => new MediaResponseDto()
+                {
+                    FileURL = m.FilePath,
+                    MediaType = m.Type.ToString()
+                }).ToList()
+            }).ToList();
+            return result;
+        }
+
+        public async Task<ReportDetailsDto> GetReportByIdAsync(int reportId,bool tracked = true)
+        {
+            var report = await _uow.ReportsRepo.GetReportWithDetailsAsync(reportId,tracked);
+            if (report == null)
+            {
+                throw new NotFoundException("NotFoundException");
+            }
+            var result = new ReportDetailsDto()
+            {
+                ReportId = report.Id,
+                Date = report.Date,
+                Latitude = report.Latitude,
+                Longitude = report.Longitude,
+                Priority = report.ReportAnalysis?.ReportPriority,
+                Description = report.Description,
+                ReportState = report.State,
+                IsValid = report.IsValid,
+                ReportType = report.ReportAnalysis?.ReportType,
+                Recommendations = report.ReportAnalysis?.Recomendations,
+                ConfidenceScore = report.ReportAnalysis?.ConfidenceScore,
+                ReporterName = $"{report.User.FName} {report.User.SName}",
+                ReporterId = report.User.Id,
+                CityId = report.CityId,
+                TeamName = report.Team?.Name ?? "No Team",
+                AttachedMedia = report.Medias.Select(m => new MediaResponseDto
+                {
+                    FileURL = m.FilePath,
+                    MediaType = m.Type.ToString()
+                }).ToList()
+            };
+            return result;
+
+
+        }
+        public async Task<ReportSummaryDto> GetReportSummaryByIdAsync(int reportId,bool tracked) {
+            var report = await _uow.ReportsRepo.GetByIdAsync(reportId, tracked);
+            if (report == null) {
+                return null;
+            }
+            var result = new ReportSummaryDto() {
+                ReportId = reportId,
+                UserId = report.UserId,
+                Latitude = report.Latitude,
+                Longitude = report.Longitude,
+                Date = report.Date,
+                Description = report.Description,
+                ReportType = report.Type,
+                State = report.State,
+                AttachedMedia = report.Medias.Select(m => new MediaResponseDto
+                {
+                    FileURL = m.FilePath,
+                    MediaType = m.Type.ToString()
+                }).ToList()
+            };
+            return result;
+        }
+
+
+
+        public async Task<bool> UpdateReportStatusAsync(int reportId, ReportStatus newState)
+        {
+            var report = await _uow.ReportsRepo.GetByIdAsync(reportId);
+            if (report == null)
+            {
+                throw new NotFoundException("Report does not found");
+            }
+
+            var user = await _uow.UsersRepo.GetByIdAsync(report.UserId);
+            if (user == null)
+            {
+                throw new NotFoundException("user does not found");
+            }
+
+            if (report.State == newState) return true;
+
+            if (report.State == ReportStatus.Resolved && newState != ReportStatus.Resolved || report.State == ReportStatus.Closed)
+            {
+                throw new Exception("Sorry, the status of a report that has already been resolved cannot be changed.");
+            }
+
+            // 1. تحديث حالة البلاغ
+            report.State = newState;
+
+            // 2. تجهيز نصوص الإشعار
+            string title = "Update regarding your report";
+            string body = newState switch
+            {
+                ReportStatus.InProgress => "We have started working on your report now.",
+                ReportStatus.Resolved => "Your report has been successfully resolved, thank you for your cooperation!",
+                ReportStatus.Closed => "The report has been closed..",
+                _ => $"Your report status is now: {newState}"
+            };
+
+            // 3. إضافة الإشعار في الداتابيز (In-App Notification)
+            var dbNotification = new Domain.Entites.Notification
+            {
+                Title = title,
+                Body = body,
+                UserId = report.UserId,
+                Date = DateTime.Now,
+                IsRead = false,
+                EmployeeId = null 
+            };
+            _uow.NotificationRepo.Add(dbNotification);
+
+            
+            var success = await _uow.SaveChangesAsync() > 0;
+
+            
+            if (success && !string.IsNullOrEmpty(user?.FcmToken))
+            {
+                var notificationData = new Dictionary<string, string>{
+            { "reportId", report.Id.ToString() },
+            { "click_action", "FLUTTER_NOTIFICATION_CLICK" }, // ضرورية لبعض إصدارات أندرويد
+            { "type", "REPORT_DETAILS" }
+        };
+
+                // نداء سيرفيس النوتفكيشن (بدون ما نعطل الـ Main Flow)
+                _ = _notificationService.SendNotificationAsync(user.FcmToken, title, body, notificationData);
+            }
+
+            // 6. تحديث الداشبورد
+            await _hubContext.Clients.Group(report.CityId.ToString())
+                .SendAsync("RefreshReports");
+
+            return success;
+        }
+        public async Task<bool> CancelReportAsync(int reportId) {
+            var report = await _uow.ReportsRepo.GetByIdAsync(reportId);
+            if (report == null) {
+                throw new NotFoundException("Report Not Found");
+            }
+            if(report.State!= ReportStatus.Closed && report.State != ReportStatus.InProgress && report.State != ReportStatus.Resolved)
+                report.State = ReportStatus.Closed;
+            var result =  await _uow.SaveChangesAsync()>0;
+
+            if (result) {
+                await _hubContext.Clients.Group(report.CityId.ToString())
+                .SendAsync("RefreshReports");
+            }
+            
+            return result;
+        }
+
+
+        public async Task<bool> AssignTeamToReportAsync(int reportId, int teamId)
+        {
+            var report = await _uow.ReportsRepo.GetByIdAsync(reportId);
+
+            var team = await _uow.TeamRepo.GetByIdAsync(teamId);
+
+            if (report == null)
+            {
+                throw new NotFoundException(" the report is does not exist");
+            }
+            if (team == null)
+            {
+                throw new NotFoundException(" the team is does not exist");
+            }
+            report.TeamId = teamId;
+            report.State = ReportStatus.InProgress;
+            var result =  await _uow.SaveChangesAsync() > 0;
+            if (result)
+            {
+                await _hubContext.Clients.Group(report.CityId.ToString())
+                .SendAsync("RefreshReports");
+            }
+            return result;
+
+
+
+        }
+        public async Task<bool> ValidateReportAsync(int reportId, bool isValid) {
+            var report = await _uow.ReportsRepo.GetByIdAsync(reportId);
+            if (report == null) throw new NotFoundException("The Report does not exist!");
+
+            var user = await _uow.UsersRepo.GetByIdAsync(report.UserId);
+            if (user == null) throw new NotFoundException("The User  does not exist!");
+
+            report.IsValid = isValid;
+
+            if (isValid)
+            {
+                user.Rate += 0.5m;
+            }
+            else {
+                user.Rate -= 1;
+            }
+            user.Rate = Math.Clamp(user.Rate, 0.0m, 5);
+
+            var result =  await _uow.SaveChangesAsync()>0;
+            if (result)
+            {
+                await _hubContext.Clients.Group(report.CityId.ToString())
+                .SendAsync("RefreshReports");
+            }
+            return result;
+
+        }
+        public async Task<bool> CorrectReportTypeAsync(int reportId, int categoryId)
+        {
+            var category = await _uow.ReportCategoryRepo.GetByIdAsync(categoryId);
+            var report = await _uow.ReportsRepo.GetByIdAsync(reportId);
+
+            if (report == null || category == null) return false;
+
+            if (report.ReportAnalysis == null)
+            {
+                
+                report.ReportAnalysis = new ReportAnalysis
+                {
+                    ReportType = category.Name,
+                    ConfidenceScore = 1.0, 
+                    ReportPriority = "Medium" 
+                };
+            }
+            else
+            {
+                
+                report.ReportAnalysis.ReportType = category.Name;
+            
+            }
+            return await _uow.SaveChangesAsync() > 0;
+        }
+
+        public async Task<IEnumerable<LookupDto>> GetCategories()
+        {
+            var categories = await _uow.ReportCategoryRepo.GetAllAsync();
+            if (categories == null || !categories.Any()) {
+                return [];
+            }
+            var result = categories.Select(c => new LookupDto()
+            {
+                Id = c.Id,
+                Name = c.Name
+            });
+            return result;
+        }
+    }
+}
+
+/* ==========================================
+   File: ITeamService.cs
+========================================== */
+
+using Application.DTOs.TeamsDTOs;
+using Domain.Entites;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.Services.TeamService
+{
+    public interface ITeamService
+    {
+        public Task<bool> AddTeamAsync(CreateTeamDTO dto);
+        public Task<TeamDTO?> GetTeamByIdAsync(int teamId);
+        public Task<TeamDTO?> GetTeamByNameAsync(string teamName);
+        public Task<IEnumerable<TeamDTO>?> GetTeamsAsync();
+        public Task<IEnumerable<TeamDTO>?> GetTeamsByCityIdAsync(int cityId);
+        public Task<bool> BlockTeamAsync(int id);
+        public Task<bool> UpdateTeamAsync(TeamDTO dto);
+        public Task<bool> UpdateTeamStateAsync(UpdateTeamStateDTO dto);
+        public Task<bool> AssignEmployeeToTeamAsync(AssignEmployeeToTeamDTO dto);
+    }
+}
+
+/* ==========================================
+   File: TeamService.cs
+========================================== */
+
+using Application.DTOs.TeamsDTOs;
+using Domain.Entites;
+using Domain.Interfaces.Repositories;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Domain.Enums;
+
+namespace Application.Services.TeamService
+{
+    public class TeamService : ITeamService
+    {
+        private readonly IUnitOfWork _uow;
+        public TeamService(IUnitOfWork uow)
+        {
+            _uow = uow;
+        }
+        
+        public async Task<bool> AddTeamAsync(CreateTeamDTO dto)
+        {
+            var existTeam = await _uow.TeamRepo.GetFirstOrDefaultAsync(t => t.Name == dto.Name,false);
+            if (existTeam!=null)
+            {
+                return false;
+            }
+
+            var newTeam = new Team()
+            {
+                Name = dto.Name,
+                CityId = dto.CityId,
+                State = TeamState.Available
+            };
+            _uow.TeamRepo.Add(newTeam);
+            return await _uow.SaveChangesAsync() > 0;
+        }
+
+        public async Task<bool> BlockTeamAsync(int id)
+        {
+            var team = await _uow.TeamRepo.GetByIdAsync(id);
+            if (team == null) { throw new Exception("team does not exist"); }
+            team.State = TeamState.Blocked;
+            return await _uow.SaveChangesAsync() > 0;
+        }
+
+        public async Task<TeamDTO?> GetTeamByIdAsync(int teamId)
+        {
+            var team = await _uow.TeamRepo.GetByIdAsync(teamId,false);
+            if (team == null) { return null; }
+            var dto = new TeamDTO() {
+                Id = team.Id,
+                Name = team.Name,
+                CityId = team.CityId,
+                State = team.State,
+            };
+            return dto;
+        }
+
+        public async Task<TeamDTO?> GetTeamByNameAsync(string teamName)
+        {
+            var team = await _uow.TeamRepo.GetFirstOrDefaultAsync(t => t.Name == teamName, false);
+            if (team == null) return null;
+            var dto = new TeamDTO()
+            {
+                Id = team.Id,
+                Name = team.Name,
+                CityId = team.CityId,
+                State = team.State,
+            };
+            return dto;
+        }
+
+        public async Task<IEnumerable<TeamDTO>?> GetTeamsByCityIdAsync(int cityId)
+        {
+            var teams = await _uow.TeamRepo.GetAllAsync(t => t.CityId == cityId);
+            if(teams == null) return [];
+            var result = teams.Select(t => new TeamDTO()
+            {
+                Id = t.Id,
+                Name = t.Name,
+                CityId = t.CityId,
+                State = t.State,
+            });
+            return result;
+        }
+        public async Task<IEnumerable<TeamDTO>?> GetTeamsAsync()
+        {
+            var teams = await _uow.TeamRepo.GetAllAsync();
+            if(teams == null) return [];
+            var result = teams.Select(t => new TeamDTO()
+            {
+                Id = t.Id,
+                Name = t.Name,
+                CityId = t.CityId,
+                State = t.State,
+            });
+            return result;
+        }
+
+        public async Task<bool> UpdateTeamAsync(TeamDTO dto)
+        {
+            var team = await _uow.TeamRepo.GetByIdAsync(dto.Id);
+            if (team == null) return false;
+            team.Name = dto.Name;
+            team.CityId = dto.CityId;
+            return await _uow.SaveChangesAsync()>0;
+            
+        }
+        public async Task<bool> UpdateTeamStateAsync(UpdateTeamStateDTO dto)
+        {
+            var team = await _uow.TeamRepo.GetByIdAsync(dto.TeamId);
+            if (team == null) return false;
+            team.State = dto.State;
+            return await _uow.SaveChangesAsync()>0;
+            
+        }
+        public async Task<bool> AssignEmployeeToTeamAsync(AssignEmployeeToTeamDTO dto)
+        {
+            
+            var employee = await _uow.EmployeesRepo.GetByIdAsync(dto.EmployeeId);
+            if (employee == null) throw new Exception("The employee is not present.");
+
+   
+            var teamExists = await _uow.TeamRepo.GetFirstOrDefaultAsync(t => t.Id == dto.TeamId, tracked: false);
+            if (teamExists == null) throw new Exception("The team is not present.");
+            
+            employee.TeamId = dto.TeamId;
+            
+            return await _uow.SaveChangesAsync() > 0;
+        }
+
+    }
+}
+
+/* ==========================================
+   File: AuthService.cs
+========================================== */
+
+using Application.Constants;
+using Application.DTOs.UserDTOs;
+using Application.SecurityService;
+using Domain.Entites;
+using Domain.Exceptions;
+using Domain.Interfaces.Repositories;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.Services.UserServices
+{
+    public class AuthService : IAuthService
+    {
+        private readonly IUnitOfWork _uow;
+        private readonly IJwtProvider _jwtProvider;
+        public AuthService(IUnitOfWork uow , IJwtProvider jwtProvider)
+        {
+            _uow = uow;
+            _jwtProvider = jwtProvider;
+        }
+        public async Task<LoginResponseDTO> LoginAsync(string email, string password)
+        {
+            var user =  await _uow.UsersRepo.GetUserByEmailAsync(email);
+            
+            if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+                throw new UnauthorizedAccessException("Incorrect email address or password");
+            var token = _jwtProvider.GenerateToken(user,user.EmployeeProfile?.Id);
+            var response = new LoginResponseDTO()
+            {
+                Token = token,
+                UserId = user.Id,
+                CityId = user.CityId,
+                FirstName = user.FName,
+                Role = user.Role?.Name
+            };
+            if (response.Role == "Employee") {
+                var employee = await _uow.EmployeesRepo.GetFirstOrDefaultAsync(e => e.UserId == user.Id);
+                if(employee != null)
+                    response.EmployeeId = employee.Id;
+            }
+                return response;           
+        }
+        public async Task<bool> LogUp(RegisterUserDto dto, int roleId = AppRoles.User)
+        {
+            var oldUser = await _uow.UsersRepo.GetUserByEmailAsync(dto.Email);
+            if (oldUser != null)
+            {
+                throw new Exception("Used Email Address ");
+            }
+            var newUser = new User()
+            {
+                NationalId = dto.NationalId,
+                FName = dto.FirstName,
+                SName = dto.SecondName,
+                Address = dto.HomeAddress,
+                Email = dto.Email,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+                Phone = dto.Phone,
+                Gender = dto.Gender,
+                Birthdate = dto.Birthdate,
+                Volunteer = true, // default
+                CityId = dto.CityId,
+                RoleId = roleId
+            };
+            _uow.UsersRepo.Add(newUser);
+            return await _uow.SaveChangesAsync() > 0;
+
+        }
+
+
+    }
+}
+
+/* ==========================================
+   File: IAuthService.cs
+========================================== */
+
+using Application.DTOs.UserDTOs;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.Services.UserServices
+{
+    public interface IAuthService
+    {
+        public Task<LoginResponseDTO> LoginAsync(string email , string password);
+        public Task<bool> LogUp(RegisterUserDto dto, int roleId);
+
+
+
+    }
+}
+
+/* ==========================================
+   File: IUserService.cs
+========================================== */
+
+using Application.DTOs.LookupDtos;
+using Application.DTOs.UserDTOs;
+using Domain.Interfaces.Repositories;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.Services.UserServices
+{
+    public interface IUserService
+    {
+        public Task<bool> UpdateFcmTokenAsync(int userId, string token);
+       // public Task<bool> UpdateUserInfoAsync(UpdateUserInfoDTO dto);
+        //public Task<UserProfileResponseDto>GetUserProfileAsync(int userId);
+        public Task<bool> BlokUserAsync(int userId);
+        public Task<bool> UnBlokUserAsync(int userId);
+        public Task<IEnumerable<UserProfileResponseDto>> GetAllUsersAsync(int page , int size,int? cityId=null);
+        public Task<bool> ToggleNotificationsAsync(int userId, NotificationToggleDto dto);
+        public Task<bool> ToggleVolunteerAsync(int userId, ToggleDto dto);
+
+        public Task<UserProfileResponseDto> GetUserProfile(int userId);
+        public Task<bool> UpdateUserProfile(int userId , UpdateUserInfoDTO dto);
+
+
+    }
+}
+
+/* ==========================================
+   File: UserService.cs
+========================================== */
+
+using Application.Constants;
+using Application.DTOs.LookupDtos;
+using Application.DTOs.UserDTOs;
+using Domain.Entites;
+using Domain.Exceptions;
+using Domain.Interfaces.Repositories;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Numerics;
+using System.Text;
+using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+
+namespace Application.Services.UserServices
+{
+    public class UserService : IUserService
+    {
+        private readonly IUnitOfWork _uow;
+        public UserService(IUnitOfWork uow)
+        {
+            _uow = uow;
+        }
+
+        public async Task<bool> BlokUserAsync(int userId)
+        {
+            var user = await _uow.UsersRepo.GetByIdAsync(userId);
+            if (user == null)  throw new NotFoundException("user not found");
+            user.Rate = 1; 
+            return await _uow.SaveChangesAsync()>0;
+        }
+        public async Task<bool> UnBlokUserAsync(int userId)
+        {
+            var user = await _uow.UsersRepo.GetByIdAsync(userId);
+            if (user == null)  throw new NotFoundException("user not found");
+            user.Rate = 5; 
+            return await _uow.SaveChangesAsync()>0;
+        }
+
+
+
+        public async Task<IEnumerable<UserProfileResponseDto>> GetAllUsersAsync(int page , int size, int? cityId = null)
+        {
+            var users = await _uow.UsersRepo.GetUsers(page, size, cityId);
+            if (users == null) return null;
+            var result = users.Select(u => new UserProfileResponseDto()
+            {
+                FirstName = u.FName,
+                SecundName = u.SName,
+                Email = u.Email,
+                NationalId = u.NationalId,
+                Address = u.Address,
+                Phone = u.Phone,
+                Gender = u.Gender,
+                Volunteer = u.Volunteer,
+                Notification = u.IsNotificationEnabled,
+                Birthdate = u.Birthdate,
+                Rate = u.Rate
+
+            });
+            return result;
+        }
+
+
+
+        public async Task<bool> ToggleNotificationsAsync(int userId, NotificationToggleDto dto)
+        {
+            var user = await _uow.UsersRepo.GetByIdAsync(userId);
+            if (user == null) { throw new NotFoundException("User not found"); }
+            if (dto == null || dto.IsEnabled == null) return false;
+            user.IsNotificationEnabled = dto.IsEnabled;
+            return await _uow.SaveChangesAsync() > 0;
+        }
+
+        public async Task<bool> ToggleVolunteerAsync(int userId, ToggleDto dto)
+        {
+            var user = await _uow.UsersRepo.GetByIdAsync(userId);
+            if (user == null || dto == null) throw new NotFoundException("user not found");
+            user.Volunteer = dto.IsEnabled;
+            return await _uow.SaveChangesAsync()>0;
+
+        }
+
+        public async Task<bool> UpdateFcmTokenAsync(int userId, string token)
+        {
+            var user = await _uow.UsersRepo.GetByIdAsync(userId);
+            if(user == null)
+                return false;
+            user.FcmToken = token;
+            return await _uow.SaveChangesAsync() > 0 ;
+        }
+
+        public async Task<UserProfileResponseDto> GetUserProfile(int userId)
+        {
+            var user = await _uow.UsersRepo.GetByIdAsync(userId, false);
+            if (user == null) throw new NotFoundException("user does not exist");
+
+            var result = new UserProfileResponseDto()
+            {
+                FirstName = user.FName,
+                SecundName = user.SName,
+                Address =   user.Address,
+                Birthdate = user.Birthdate,
+                Email =     user.Email,
+                Gender =    user.Gender,
+                NationalId = user.NationalId,
+                Phone =     user.Phone,
+                Rate =      user.Rate,
+                Notification = user.IsNotificationEnabled,
+                Volunteer =     user.Volunteer
+            };
+            return result;
+
+        }
+
+        public async Task<bool> UpdateUserProfile(int userId, UpdateUserInfoDTO dto)
+        {
+            var user = await _uow.UsersRepo.GetByIdAsync(userId);
+            if(user == null) throw new NotFoundException("user does not exist");
+            if(dto == null) throw new ArgumentNullException("enter valid data");
+
+            user.FName = dto.FirstName;
+            user.SName = dto.SecondName;
+            user.Address = dto.HomeAddress;
+            user.Phone = dto.Phone;
+            user.Email = dto.Email;
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+            user.CityId = dto.CityId;
+            return await _uow.SaveChangesAsync() > 0; 
+
+
+        }    
+    }       
+}          
+
+/* ==========================================
+   File: IVolunteerService.cs
+========================================== */
+
+using Application.DTOs;
+using Application.DTOs.VolunteerDTOs;
+
+
+public interface IVolunteerService
+{
+    
+    Task<List<NearbyMissionResponseDto>> GetNearbyMissions(int cityId, decimal userLat, decimal userLng);
+    Task<bool> AcceptMission(int reportId, int volunteerId);
+    Task<bool> CompleteMission(int reportId, int volunteerId);
+    Task<List<LeaderboardDto>> GetTopVolunteers();
+    Task<VolunteerProfileDto> GetVolunteerProfile(int volunteerId);
+    Task CheckAndAssignAchievements(int volunteerId);
+
+    Task<bool> CancelMission(int reportId, int volunteerId);
+    Task<CurrentMissionDto?> GetCurrentMission(int volunteerId);
+    Task<IEnumerable<MissionHistoryDto>> GetVolunteerHistory(int volunteerId);
+}
+
+/* ==========================================
+   File: VolunteerService.cs
+========================================== */
+
+using Application.Constants;
+using Application.DTOs;
+using Application.DTOs.NotficationDTOs;
+using Application.DTOs.VolunteerDTOs;
+using Application.Services.NotificationServices;
+using Application.Services.ReportServices;
+using Domain.Entites;
+using Domain.Enums;
+using Domain.Interfaces.Repositories;
+using Microsoft.AspNetCore.SignalR;
+
+using SReport.Hubs;
+
+public class VolunteerService : IVolunteerService
+{
+    private readonly IUnitOfWork _uow;
+    private readonly IHubContext<ReportHub> _hubContext;
+    private readonly IReportService _reportService;
+
+    public VolunteerService(IUnitOfWork uow, IHubContext<ReportHub> hubContext ,IReportService reportService)
+    {
+        _uow = uow;
+        _hubContext = hubContext;
+        _reportService = reportService;
+    }
+
+    // ١. جلب البلاغات القريبة (الفلترة بالـ 3 كيلو)
+    public async Task<List<NearbyMissionResponseDto>> GetNearbyMissions(int cityId, decimal userLat, decimal userLng)
+    {
+        var availableReports = await _uow.ReportsRepo.GetAllAsync(r =>
+            r.CityId == cityId && r.State ==ReportStatus.Pending);
+
+        var nearbyReports = new List<NearbyMissionResponseDto>();
+
+        foreach (var report in availableReports)
+        {
+            decimal distance = CalculateDistance(userLat, userLng, report.Latitude, report.Longitude);
+
+            // لو المسافة أقل من أو تساوي 3000 متر (3 كيلو)
+            if (distance <= 3000)
+            {
+                // بنعمل Mapping للـ DTO
+                nearbyReports.Add(new NearbyMissionResponseDto
+                {
+                    ReportId = report.Id,
+                    // تأكد إن اسم الخاصية Description موجود في كلاس Report عندك أو بدلها بالاسم الصح
+                    Description = report.Description,
+                    Latitude = report.Latitude,
+                    Longitude = report.Longitude,
+                    DistanceInMeters = Math.Round(distance, 2), // قربناها لرقمين عشريين عشان الشكل
+                    Status = report.State,
+                    CreatedAt = report.Date // لو عندك الخاصية دي في الـ Report
+                });
+            }
+        }
+
+        // بنرجع اللستة مترتبة تصاعدياً من الأقرب للأبعد! 🚀
+        return nearbyReports.OrderBy(r => r.DistanceInMeters).ToList();
+    }
+
+    // ٢. قبول البلاغ
+    public async Task<bool> AcceptMission(int reportId, int volunteerId)
+    {   
+        var mission = new ReportVolunteer
+        {
+            ReportId = reportId,
+            VolunteerId = volunteerId,
+            Status = VolunteerMissionStatus.Joined,
+            JoinedAt = DateTime.Now
+        };
+        _uow.ReportVolunteersRepo.Add(mission);
+
+        await _uow.SaveChangesAsync();
+
+        var isStatusUpdated = await _reportService.UpdateReportStatusAsync(reportId, ReportStatus.InProgress);
+        return isStatusUpdated;
+    }
+
+    // ٣. إنهاء البلاغ وتوزيع النقاط
+    public async Task<bool> CompleteMission(int reportId, int volunteerId)
+    {
+        // 1. نحدث حالة المهمة لـ "مكتملة"
+        var mission = await _uow.ReportVolunteersRepo.GetFirstOrDefaultAsync(m =>
+            m.ReportId == reportId && m.VolunteerId == volunteerId);
+
+        if (mission == null) return false;
+
+        mission.Status = VolunteerMissionStatus.Completed;
+        mission.CompletedAt = DateTime.Now;
+
+        // 2. نزود النقاط للمتطوع (مثلاً 3 نقطة)
+        var user = await _uow.UsersRepo.GetByIdAsync(volunteerId);
+        user.TotalPoints += 3;
+
+        // 3. نسجل العملية في الـ PointsLog
+        _uow.PointsLogsRepo.Add(new PointsLog
+        {
+            UserId = volunteerId,
+            Points = 3,
+            CreatedAt = DateTime.Now
+        });
+
+        await CheckAndAssignAchievements(volunteerId);
+
+
+        await _uow.SaveChangesAsync();
+
+        var isStatusUpdated = await _reportService.UpdateReportStatusAsync(reportId, ReportStatus.Resolved);
+
+        return isStatusUpdated;
+    }
+
+    // ==========================================
+    // دالة مساعدة لحساب المسافة (Haversine Formula)
+    // ==========================================
+    private decimal CalculateDistance(decimal lat1, decimal lon1, decimal lat2, decimal lon2)
+    {
+        var R = 6371e3; // نصف قطر الأرض بالمتر
+        var phi1 = (double)lat1 * Math.PI / 180;
+        var phi2 = (double)lat2 * Math.PI / 180;
+        var dPhi = (double)(lat2 - lat1) * Math.PI / 180;
+        var dLambda = (double)(lon2 - lon1) * Math.PI / 180;
+
+        var a = Math.Sin(dPhi / 2) * Math.Sin(dPhi / 2) +
+                Math.Cos(phi1) * Math.Cos(phi2) *
+                Math.Sin(dLambda / 2) * Math.Sin(dLambda / 2);
+
+        var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+
+        return (decimal)(R * c); // بترجع المسافة بالمتر
+    }
+
+    // ٤. جلب قائمة أفضل المتطوعين (Leaderboard)
+    public async Task<List<LeaderboardDto>> GetTopVolunteers()
+    {
+        // بنجيب كل اليوزرز اللي الرول بتاعهم متطوع (تأكد من اسم الرول عندك)
+        var volunteers = await _uow.UsersRepo.GetAllAsync(u => u.RoleId == AppRoles.User && u.Volunteer == true);
+
+        // بنرتبهم تنازلياً حسب النقاط وناخد أعلى 10 بس
+        var topVolunteers = volunteers
+            .OrderByDescending(u => u.TotalPoints)
+            .Take(30)
+            .Select(u => new LeaderboardDto
+            {
+                Name = u.FName + " " + u.SName,
+                Avatar = u.Avatar,
+                TotalPoints = u.TotalPoints
+            }).ToList();
+
+        return topVolunteers;
+    }
+
+    // ٥. جلب بروفايل المتطوع والإحصائيات بتاعته
+    public async Task<VolunteerProfileDto> GetVolunteerProfile(int volunteerId)
+    {
+        var user = await _uow.UsersRepo.GetByIdAsync(volunteerId);
+
+        // بنعد البلاغات اللي المتطوع ده خلصها بنجاح من الجدول الوسيط
+        var completedMissions = await _uow.ReportVolunteersRepo.GetAllAsync(m =>
+            m.VolunteerId == volunteerId &&
+            m.Status == VolunteerMissionStatus.Completed);
+
+        var userAchievements = await _uow.UserAchievementsRepo.GetAllAsync(u => u.UserId == volunteerId, "Achievement");
+        var earnedNames = userAchievements.Select(u => u.Achievement.Name).ToList();
+
+        return new VolunteerProfileDto
+        {
+            Name = user.FName,
+            Avatar = user.Avatar,
+            TotalPoints = user.TotalPoints,
+            CompletedMissionsCount = completedMissions.Count(),
+            EarnedAchievements=earnedNames
+        };
+    }
+
+    public async Task CheckAndAssignAchievements(int volunteerId)
+    {
+        // 1. نجيب عدد البلاغات اللي المتطوع ده خلصها
+        // لاحظ: بنستخدم GetWhereAsync أو بنجيب اللستة ونعدها بناءً على المتاح في الـ Repo عندك
+        var completedMissions = await _uow.ReportVolunteersRepo.GetWhereAsync(m =>
+            m.VolunteerId == volunteerId && m.Status == VolunteerMissionStatus.Completed);
+
+        int completedCount = completedMissions.Count();
+
+        // 2. نحدد رقم الوسام (AchievementId) بناءً على العدد
+        int? achievementIdToAward = completedCount switch
+        {
+            1 => 1,    // First Mission
+            10 => 2,   // Helper
+            25 => 3,   // Guardian
+            50 => 4,   // Hero
+            100 => 5,  // Legend
+            _ => null  // لو الرقم مش مطابق لدول، مفيش وسام جديد
+        };
+
+        // 3. لو يستحق وسام، نتأكد إنه مش معاه قبل كده ونديهوله
+        if (achievementIdToAward.HasValue)
+        {
+            var existingBadges = await _uow.UserAchievementsRepo.GetWhereAsync(ua =>
+                ua.UserId == volunteerId && ua.AchievementId == achievementIdToAward.Value);
+
+            if (!existingBadges.Any())
+            {
+                var newBadge = new UserAchievement
+                {
+                    UserId = volunteerId,
+                    AchievementId = achievementIdToAward.Value,
+                    EarnedAt = DateTime.Now
+                };
+
+                _uow.UserAchievementsRepo.Add(newBadge);
+                // مش هنعمل SaveChangesAsync هنا، لأننا هنخلي الميثود الأصلية هي اللي تسيف
+            }
+        }
+    }
+
+    public async Task<bool> CancelMission(int reportId, int volunteerId)
+    {
+        
+        var volunteerMission = await _uow.ReportVolunteersRepo.GetFirstOrDefaultAsync(m =>
+            m.ReportId == reportId &&
+            m.VolunteerId == volunteerId &&
+            m.Status == VolunteerMissionStatus.Joined); // تأكد إن الـ Enum عندك اسمه كده
+
+        if (volunteerMission == null) return false;
+
+        // 2. نجيب البلاغ نفسه
+        var report = await _uow.ReportsRepo.GetByIdAsync(reportId);
+        if (report == null) return false;
+
+        // 3. نغير حالة سجل التطوع لـ "Cancelled" أو نمسحه (تغيير الحالة أفضل للـ History)
+        volunteerMission.Status = VolunteerMissionStatus.Cancelled;
+
+        // 4. نرجع البلاغ لحالته الأولى عشان يظهر لمتطوعين تانيين
+        report.State = ReportStatus.Pending;
+
+        // 5. حفظ التعديلات
+        var result = await _uow.SaveChangesAsync() > 0;
+
+        if (result)
+        {
+            
+             await _hubContext.Clients.Group(report.CityId.ToString()).SendAsync("RefreshReports");
+        }
+
+        return result;
+    }
+
+    public async Task<CurrentMissionDto?> GetCurrentMission(int volunteerId)
+    {
+        
+        var activeMission = await _uow.ReportVolunteersRepo.GetFirstOrDefaultAsync(
+             m => m.VolunteerId == volunteerId && m.Status == VolunteerMissionStatus.Joined,false,"Report,Report.City");
+
+        if (activeMission == null || activeMission.Report == null) return null;
+
+        return new CurrentMissionDto
+        {
+            ReportId = activeMission.ReportId,
+            Description = activeMission.Report.Description,
+            Latitude = activeMission.Report.Latitude,
+            Longitude = activeMission.Report.Longitude,
+            CityName = activeMission.Report.City?.Name ?? "Undefined",
+            AcceptedAt = activeMission.JoinedAt 
+        };
+    }
+
+    public async Task<IEnumerable<MissionHistoryDto>> GetVolunteerHistory(int volunteerId)
+    {
+        var completedMissions = await _uow.ReportVolunteersRepo.GetAllAsync(
+            filter: m => m.VolunteerId == volunteerId && m.Status == VolunteerMissionStatus.Completed,
+            properties: "Report");
+
+        return completedMissions
+            .OrderByDescending(m => m.CompletedAt) // ترتيب من الأحدث للأقدم
+            .Select(m => new MissionHistoryDto
+            {
+                ReportId = m.ReportId,
+                Description = m.Report.Description ?? "Without description",
+                CompletedAt = m.CompletedAt ?? DateTime.Now,
+                EarnedPoints = 3 
+            }).ToList();
+    }
+
+}

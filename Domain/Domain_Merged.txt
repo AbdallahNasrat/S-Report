@@ -1,0 +1,843 @@
+﻿
+/* ==========================================
+   File: Achievement.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domain.Entites
+{
+    public class Achievement
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public string Icon { get; set; }
+        public ICollection<UserAchievement> EarnedByUsers { get; set; }
+    }
+}
+
+/* ==========================================
+   File: City.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domain.Entites
+{
+    public class City
+    {
+        public int Id { get; set; }
+        [MaxLength(100)]
+        public string Name { get; set; }
+
+        //Relationships
+        public ICollection<Report> Reports { get; set; } = new HashSet<Report>();
+        public ICollection<Notification> Notifications { get; set; } = new HashSet<Notification>();
+        public ICollection<Team> Teams { get; set; } = new HashSet<Team>();
+        public ICollection<User> Users { get; set; } = new HashSet<User>();
+
+    }
+}
+
+/* ==========================================
+   File: Employee.cs
+========================================== */
+
+using Domain.Enums;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domain.Entites
+{
+    public class Employee
+    {
+        public int Id { get; set; }
+        public int Salary { get; set; }
+
+        //Relationship
+        public int UserId { get; set; }
+        public User User { get; set; }
+        public int? TeamId { get; set; }
+        public Team? Team { get; set; }
+        public int? RoleId { get; set; }
+        public Role? Role { get; set; }
+        public ICollection<Notification> Notifications { get; set; } = new HashSet<Notification>();
+    }
+}
+
+/* ==========================================
+   File: Media.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domain.Entites
+{
+    public enum MediaType
+    {
+        Image = 1,
+        Audio = 2,
+        Video = 3
+    }
+    public class Media
+    {
+        public int Id { get; set; }
+        
+        public string FilePath { get; set; }
+        public MediaType Type { get; set; }
+
+
+        //Relationships
+        public int ReportId { get; set; }
+        public Report Report { get; set; }
+    }
+}
+
+/* ==========================================
+   File: Notification.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domain.Entites
+{
+    public class Notification
+    {
+        public int Id { get; set; }
+        public string Title { get; set; }
+        public string? Body { get; set; }
+        public DateTime Date { get; set; }
+        public bool IsRead { get; set; } = false;
+
+        //Relationship
+        public int? UserId { get; set; }
+        public User? User { get; set; }
+        public ICollection<City>? Cities { get; set; }
+        public int? EmployeeId { get; set; }
+        public Employee? Employee { get; set; }
+
+
+
+    }
+}
+
+/* ==========================================
+   File: PointsLog.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domain.Entites
+{
+    public class PointsLog
+    {
+        public int Id { get; set; }
+        public int UserId { get; set; }
+        public User User { get; set; }
+        public int Points { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+    }
+}
+
+/* ==========================================
+   File: Report.cs
+========================================== */
+
+using Domain.Enums;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domain.Entites
+{
+    public class Report
+    {
+        public int Id { get; set; }
+        public DateTime Date { get; set; }
+        public string? Type { get; set; }
+        public decimal Latitude { get; set; }
+        public decimal Longitude { get; set; }
+        public string Description { get; set; }
+        public ReportStatus State { get; set; }
+        public bool? IsValid { get; set; }
+
+
+        //Relationship
+        public int UserId { get; set; }
+        public User User { get; set; }
+        public int CityId { get; set; }
+        public City City { get; set; }
+        public int? TeamId { get; set; }
+        public Team? Team { get; set; }
+        public ICollection<Media> Medias { get; set; } = new List<Media>();
+
+        public ReportAnalysis? ReportAnalysis { get; set; }
+
+        public ICollection<ReportVolunteer> AssignedVolunteers { get; set; }
+
+    }
+}
+
+/* ==========================================
+   File: ReportAnalysis.cs
+========================================== */
+
+using Domain.Entites;
+
+public class ReportAnalysis
+{
+    public int Id { get; set; }
+    public int ReportId { get; set; }
+
+
+    public string? ReportType { get; set; }
+    public string? ReportPriority { get; set; }
+
+    public double? ConfidenceScore { get; set; }
+    public string? Recomendations { get; set; }
+    public string? ConvertedVoiceText { get; set; }
+
+    //public string? ActionPlan { get; set; }      // عمود جديد لـ "action_plan"
+   // public string? ProposedUnits { get; set; }   // عمود جديد لتخزين الـ "units" كـ String أو JSON
+    //public string? AIImagePath { get; set; }    // عمود جديد لمسار الصورة اللي الـ AI رسم عليها
+
+    public DateTime? AssignedAt { get; set; }
+    public DateTime? ResolvedAt { get; set; }
+
+    public Report Report { get; set; } = null!;
+}
+
+/* ==========================================
+   File: ReportCategory.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domain.Entites
+{
+    public class ReportCategory
+    {
+        public int Id { get; set; }
+        [MaxLength(100)]
+        public string Name { get; set; }
+    }
+}
+
+/* ==========================================
+   File: ReportType.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domain.Entites
+{
+    public class ReportType
+    {
+      //  public int Id { get; set; }
+        //[MaxLength(100)]
+       // public string Name { get; set; }
+        //Relationships
+        //public ICollection<Report> Reports { get; set; } = new HashSet<Report>();
+
+    }
+}
+
+/* ==========================================
+   File: ReportVolunteer.cs
+========================================== */
+
+using Domain.Enums;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domain.Entites
+{
+    public class ReportVolunteer
+    {
+        public int Id { get; set; }
+        public int ReportId { get; set; }
+        public Report Report { get; set; }
+        public int VolunteerId { get; set; }
+        public User Volunteer { get; set; }
+        public VolunteerMissionStatus Status { get; set; } = VolunteerMissionStatus.Joined;
+        public DateTime JoinedAt { get; set; } = DateTime.Now;
+        public DateTime? CompletedAt { get; set; }
+    }
+}
+
+/* ==========================================
+   File: Role.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domain.Entites
+{
+    public class Role
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+
+        //Relationships
+        public ICollection<User> Users { get; set; } = new HashSet<User>();
+        public ICollection<Employee> Employees { get; set; } = new HashSet<Employee>();
+    }
+}
+
+/* ==========================================
+   File: Team.cs
+========================================== */
+
+using Domain.Enums;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domain.Entites
+{
+    public class Team
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public TeamState State { get; set; }
+        //Relationship
+        public ICollection<Employee> Employees { get; set; } = new HashSet<Employee>();
+        public int CityId { get; set; }
+        public City City { get; set; }
+        public ICollection<Report> Reports { get; set; } = new HashSet<Report>();
+
+    }
+}
+
+/* ==========================================
+   File: User.cs
+========================================== */
+
+using Domain.Enums;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domain.Entites
+{
+    public class User
+    {
+        public int Id { get; set; }
+        public string NationalId { get; set; }
+        public string FName { get; set; }
+        public string SName { get; set; }
+        public string Address { get; set; }
+        public string Email { get; set; }
+        public string PasswordHash { get; set; }
+        public string Phone { get; set; }
+        public Genders Gender { get; set; }
+        public DateTime Birthdate { get; set; }
+        public bool Volunteer { get; set; }
+        public decimal Rate { get; set; }
+        public string? FcmToken { get; set; }
+        public bool IsNotificationEnabled { get; set; } = true; 
+
+
+        //Relationship
+        public int? RoleId { get; set; }
+        public Role Role { get; set; }
+        public int CityId { get; set; }
+        public City City { get; set; }
+        public ICollection<Report> Reports { get; set; } = new HashSet<Report>();
+        public ICollection<Notification> Notifications { get; set; } = new HashSet<Notification>();
+        public Employee EmployeeProfile { get; set; }
+
+
+
+        //volunteer Module
+        public int TotalPoints { get; set; } = 0;
+        public string? Avatar { get; set; }
+        public ICollection<ReportVolunteer> Missions { get; set; }
+        public ICollection<PointsLog> PointsHistory { get; set; }
+        public ICollection<UserAchievement> UserAchievements { get; set; }
+
+
+    }
+}
+
+/* ==========================================
+   File: UserAchievement.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domain.Entites
+{
+    public class UserAchievement
+    {
+        public int UserId { get; set; }
+        public int AchievementId { get; set; }
+        public Achievement Achievement { get; set; }
+        public DateTime EarnedAt { get; set; } = DateTime.Now;
+    }
+}
+
+/* ==========================================
+   File: Genders.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domain.Enums
+{
+    public enum Genders
+    {
+        male,
+        Female
+    }
+}
+
+/* ==========================================
+   File: Priorities.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domain.Enums
+{
+    public enum Priorities
+    {
+        High,
+        Medium,
+        Low
+    }
+}
+
+/* ==========================================
+   File: ReportStatus.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domain.Enums
+{
+    public enum ReportStatus
+    {
+        Pending ,
+        InProgress ,
+        Resolved,
+        Closed
+    }
+}
+
+/* ==========================================
+   File: TeamState.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domain.Enums
+{
+    public enum TeamState
+    {
+            Available,
+            Busy,
+            Blocked
+        }
+    }
+
+
+/* ==========================================
+   File: VolunteerMissionStatus.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domain.Enums
+{
+    public enum VolunteerMissionStatus
+    {
+        Joined = 1,
+        Completed = 2,
+        Cancelled = 3
+    }
+}
+
+/* ==========================================
+   File: BaseException.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domain.Exceptions
+{
+    public abstract class BaseException : Exception
+    {
+        public int StatusCode { get; }
+
+        protected BaseException(string message, int statusCode) : base(message)
+        {
+            StatusCode = statusCode;
+        }
+    }
+}
+
+/* ==========================================
+   File: NotFoundException.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domain.Exceptions
+{
+    public class NotFoundException : BaseException
+    {
+        
+        public NotFoundException(string message)
+            : base(message, 404)
+        {
+        }
+    }
+}
+    
+
+/* ==========================================
+   File: IEmployeeRepository.cs
+========================================== */
+
+using Domain.Entites;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domain.Interfaces.Repositories
+{
+    public interface IEmployeeRepository : IGenericRepository<Employee>
+    {
+        public Task<Employee> GetEmployeeByIdAsync(int id);
+        public Task<IEnumerable<Employee>> GetAllEmployeesAsync(int? cityId = null);
+
+    }
+}
+
+/* ==========================================
+   File: IGenericRepository.cs
+========================================== */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domain.Interfaces.Repositories
+{
+    public interface IGenericRepository<T> where T : class
+    {
+        //Add
+        public void Add(T entity);
+        public Task AddAsync(T entity); 
+        //Delete
+        public void Remove(T Entity);
+
+        //Update
+        public void Update(T entity);
+
+        //SearchById
+        public Task<T> GetByIdAsync(int id, bool tracked = true);
+
+        //GetAll 
+        public Task<IEnumerable<T>> GetAllAsync(Expression<Func<T,bool>> filter = null,string properties="");
+        public  Task<T> GetFirstOrDefaultAsync(Expression<Func<T, bool>> predicate, bool tracked = true, string? includeProperties = null);
+        //public Task<IEnumerable<T>> GetAllReadOnlyAsync();
+
+        public Task<IEnumerable<T>> GetWhereAsync(Expression<Func<T, bool>> predicate);
+
+
+    }
+}
+
+/* ==========================================
+   File: INotificationRepository.cs
+========================================== */
+
+using Domain.Entites;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domain.Interfaces.Repositories
+{
+    public  interface INotificationRepository : IGenericRepository<Notification>
+    {
+
+    }
+}
+
+/* ==========================================
+   File: IReportRepository.cs
+========================================== */
+
+using Domain.Entites;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domain.Interfaces.Repositories
+{
+    public interface IReportRepository : IGenericRepository<Report>
+    {
+        Task<IEnumerable<Report>> GetFilteredReportsAsync( int pageNumber, int pageSize, bool excludeResolved, int? cityId = null);
+        public Task<Report?> GetReportWithDetailsAsync(int id,bool tracked=true);
+        public Task<IEnumerable<Report>> GetReportsByUserIdAsync(int userId, int pageNumber, int pageSize);
+
+    }
+}
+
+/* ==========================================
+   File: IUnitOfWork.cs
+========================================== */
+
+using Domain.Entites;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domain.Interfaces.Repositories
+{
+    public interface IUnitOfWork  :IDisposable
+    {
+        public Task<int> SaveChangesAsync();
+
+        //Specific repos
+        public IUserRepository UsersRepo { get; }
+        public IReportRepository ReportsRepo { get; }
+        public IEmployeeRepository EmployeesRepo { get; }
+        public INotificationRepository NotificationRepo { get;  }
+
+
+        //Generic Repos
+
+        public IGenericRepository<City> CitiesRepo { get;}
+        public IGenericRepository<Media> MediaRepo { get;}
+        public IGenericRepository<ReportType> ReportTypeRepo { get;}
+        public IGenericRepository<Role> RoleRepo { get;}
+        public IGenericRepository<Team> TeamRepo { get;}
+        public IGenericRepository<ReportAnalysis> ReportAnalysisRepo { get;}
+        public IGenericRepository<ReportCategory> ReportCategoryRepo { get;}
+
+        public IGenericRepository<ReportVolunteer> ReportVolunteersRepo { get; }
+        public IGenericRepository<PointsLog> PointsLogsRepo { get; }
+        public IGenericRepository<UserAchievement> UserAchievementsRepo { get; }
+
+
+
+
+
+    }
+}
+
+/* ==========================================
+   File: IUserRepository.cs
+========================================== */
+
+using Domain.Entites;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domain.Interfaces.Repositories
+{
+    public interface IUserRepository : IGenericRepository<User>
+    {
+        public Task<User> GetUserByEmailAsync(string email);
+        public Task<IEnumerable<User>> GetUsers(int page, int size, int? cityId = null);
+    }
+}
+
+/* ==========================================
+   File: .NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+========================================== */
+
+// <autogenerated />
+using System;
+using System.Reflection;
+[assembly: global::System.Runtime.Versioning.TargetFrameworkAttribute(".NETCoreApp,Version=v8.0", FrameworkDisplayName = ".NET 8.0")]
+
+/* ==========================================
+   File: Domain.AssemblyInfo.cs
+========================================== */
+
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//     Runtime Version:4.0.30319.42000
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: System.Reflection.AssemblyCompanyAttribute("Domain")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+77983fa26bfe72ffd4e1240cd6fbe52fe9967b5b")]
+[assembly: System.Reflection.AssemblyProductAttribute("Domain")]
+[assembly: System.Reflection.AssemblyTitleAttribute("Domain")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+/* ==========================================
+   File: Domain.GlobalUsings.g.cs
+========================================== */
+
+// <auto-generated/>
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.IO;
+global using global::System.Linq;
+global using global::System.Net.Http;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+
+/* ==========================================
+   File: .NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+========================================== */
+
+// <autogenerated />
+using System;
+using System.Reflection;
+[assembly: global::System.Runtime.Versioning.TargetFrameworkAttribute(".NETCoreApp,Version=v8.0", FrameworkDisplayName = ".NET 8.0")]
+
+/* ==========================================
+   File: Domain.AssemblyInfo.cs
+========================================== */
+
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//     Runtime Version:4.0.30319.42000
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: System.Reflection.AssemblyCompanyAttribute("Domain")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+77983fa26bfe72ffd4e1240cd6fbe52fe9967b5b")]
+[assembly: System.Reflection.AssemblyProductAttribute("Domain")]
+[assembly: System.Reflection.AssemblyTitleAttribute("Domain")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+/* ==========================================
+   File: Domain.GlobalUsings.g.cs
+========================================== */
+
+// <auto-generated/>
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.IO;
+global using global::System.Linq;
+global using global::System.Net.Http;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;

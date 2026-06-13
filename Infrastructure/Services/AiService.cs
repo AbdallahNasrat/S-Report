@@ -143,7 +143,8 @@ public class AIService : IAIService
             var analysis = new ReportAnalysis
             {
                 ReportId = reportId,
-                ReportType = aiResult.Type, // TRAFFIC_ACCIDENT
+                
+                ReportType = aiResult.Type, 
                 ReportPriority = aiResult.Priority, // Medium
 
                 Recomendations = $"plan: {aiResult.Recommendation.ActionPlan}. UnitsRequired: {unitsText}",
@@ -152,6 +153,18 @@ public class AIService : IAIService
             };  
 
             await unitOfWork.ReportAnalysisRepo.AddAsync(analysis);
+            var mainReport = await unitOfWork.ReportsRepo.GetByIdAsync(reportId);
+            if (mainReport != null)
+            {               
+
+                // تحديث النوع فقط لو كان فاضي أو other
+                if (string.IsNullOrWhiteSpace(mainReport.Type) || mainReport.Type.Equals("other", StringComparison.OrdinalIgnoreCase))
+                {
+                    mainReport.Type = aiResult.Type;
+                }
+
+                unitOfWork.ReportsRepo.Update(mainReport);
+            }
             await unitOfWork.SaveChangesAsync();
         }
     }
@@ -170,7 +183,21 @@ public class AIService : IAIService
             };
 
             await unitOfWork.ReportAnalysisRepo.AddAsync(analysis);
+            var mainReport = await unitOfWork.ReportsRepo.GetByIdAsync(reportId);
+            if (mainReport != null)
+            {
+
+                // تحديث النوع فقط لو كان فاضي أو other
+                if (string.IsNullOrWhiteSpace(mainReport.Type) || mainReport.Type.Equals("other", StringComparison.OrdinalIgnoreCase))
+                {
+                    mainReport.Type = analysis.ReportType;
+                }
+
+                unitOfWork.ReportsRepo.Update(mainReport);
+            }
+
             await unitOfWork.SaveChangesAsync();
+
         }
     }
 }

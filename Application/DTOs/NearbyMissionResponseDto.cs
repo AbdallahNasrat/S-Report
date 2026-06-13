@@ -1,4 +1,5 @@
-﻿using Domain.Enums;
+﻿using Application.DTOs.ReportDTOs;
+using Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,5 +17,7 @@ namespace Application.DTOs
         public decimal DistanceInMeters { get; set; } // هدية لبتاع فلاتر عشان يعرضها
         public ReportStatus Status { get; set; }
         public DateTime CreatedAt { get; set; }
+        public List<MediaResponseDto>? AttachedMedia { get; set; }
+
     }
 }
