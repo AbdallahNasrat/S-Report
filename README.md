@@ -2,11 +2,7 @@
 
 > An AI-powered, real-time emergency and incident reporting system designed to bridge the gap between citizens, volunteers, and government authorities.
 
-![.NET](https://img.shields.io/badge/.NET-8.0-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
-![Flutter](https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white)
-![AI/ML](https://img.shields.io/badge/AI_Models-Hugging_Face-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)
-![SQL Server](https://img.shields.io/badge/SQL_Server-CC2927?style=for-the-badge&logo=microsoftsqlserver&logoColor=white)
-![SignalR](https://img.shields.io/badge/Real_Time-SignalR-0078D4?style=for-the-badge&logo=microsoft&logoColor=white)
+**Tech Stack:** 🟣 **.NET 8.0** | 🔵 **Flutter** | 🟡 **AI Models (Hugging Face)** | 🔴 **SQL Server** | ⚡ **SignalR**
 
 ## 📖 About The Project
 **S-Report** is a graduation project aimed at streamlining how incidents are reported and resolved. Citizens can report issues via a mobile app, which are then analyzed automatically by Artificial Intelligence to determine the emergency type and priority. The system dispatches these reports in real-time to the appropriate department dashboard and alerts nearby volunteers using geospatial algorithms.
