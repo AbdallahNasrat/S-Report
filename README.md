@@ -19,8 +19,8 @@ This repository contains the complete source code for the entire system, separat
  ┣ 📂 Backend-API        # Core .NET 8 API (Clean Architecture, SignalR, EF Core)
  ┣ 📂 AI-Service         # Python/Hugging Face service for Image/Audio/Text analysis
  ┣ 📂 Frontend-Flutter   # Mobile Application for Citizens & Volunteers (Cross-platform)
- ┣ 📂 Frontend         # Python/Hugging Face service for Image/Audio/Text analysis
- ┣ 📂 BI-Service         # Python/Hugging Face service for Image/Audio/Text analysis
+ ┣ 📂 Frontend         # Web Site For Employees & Admin
+ ┣ 📂 BI-Service         # Dashboard & Live Map
  ┗ 📜 README.md
 
 
